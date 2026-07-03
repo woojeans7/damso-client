@@ -52,3 +52,6 @@ next-env.d.ts
 *.webm
 *.mov
 *.avi
+
+# CLAUDE
+.claude
