@@ -1,0 +1,78 @@
+/* ============================================================
+   MEMOIR DESIGN SYSTEM — Color Tokens
+   Warm, emotional palette for family memoir service.
+   All neutrals carry warm undertones — no cold grays.
+   ============================================================ */
+
+:root {
+  /* ── Coral / Apricot ── Primary accent ─────────────────── */
+  --color-coral-50:  #FEF3EF;
+  --color-coral-100: #FDDDD4;
+  --color-coral-200: #FAB8A4;
+  --color-coral-300: #F29178;
+  --color-coral-400: #E8735A;  /* PRIMARY — main CTA */
+  --color-coral-500: #D05840;  /* hover */
+  --color-coral-600: #A84030;  /* pressed / dark */
+
+  /* ── Cream / Warm Beige ── Canvas & surfaces ───────────── */
+  --color-cream-50:  #FDFAF6;  /* canvas — main page bg */
+  --color-cream-100: #F8F2EA;  /* surface */
+  --color-cream-200: #F0E5D5;  /* surface soft */
+  --color-cream-300: #E4D3BC;  /* hairline soft */
+  --color-cream-400: #D3BC9E;  /* hairline */
+  --color-cream-500: #BEA080;  /* hairline strong */
+  --color-cream-600: #9E8060;  /* muted element */
+
+  /* ── Ink ── Warm-tinted text neutrals ──────────────────── */
+  --color-ink-900: #1E1009;    /* primary text — warm black */
+  --color-ink-700: #3D2918;    /* secondary text */
+  --color-ink-500: #6B4D36;    /* muted / label text */
+  --color-ink-300: #9E7E68;    /* placeholder text */
+  --color-ink-200: #C4A892;    /* very muted / disabled */
+
+  /* ── Sage / Calm Green ── Secondary accent ──────────────── */
+  --color-sage-50:  #EEF6F1;
+  --color-sage-100: #D2EBD9;
+  --color-sage-200: #A4D5B3;
+  --color-sage-300: #6EBA8A;
+  --color-sage-400: #4A9A6C;   /* SAGE — secondary accent */
+  --color-sage-500: #357A52;   /* sage dark */
+  --color-sage-600: #245C3A;
+
+  /* ── Amber / Warm Brown ── Tertiary accent ──────────────── */
+  --color-amber-50:  #F7EEE3;
+  --color-amber-100: #EDD8BB;
+  --color-amber-200: #D4AD78;
+  --color-amber-300: #B07840;  /* AMBER — tertiary accent */
+  --color-amber-400: #8A5C28;
+  --color-amber-500: #6A4018;
+
+  /* ── Semantic ───────────────────────────────────────────── */
+  --color-success:       #4A9A6C;
+  --color-success-bg:    #EEF6F1;
+  --color-error:         #D05840;
+  --color-error-bg:      #FEF3EF;
+  --color-warning:       #C47830;
+  --color-warning-bg:    #FDF4E4;
+
+  /* ── Semantic aliases ───────────────────────────────────── */
+  --canvas:              var(--color-cream-50);
+  --surface:             var(--color-cream-100);
+  --surface-soft:        var(--color-cream-200);
+
+  --hairline:            var(--color-cream-400);
+  --hairline-soft:       var(--color-cream-300);
+  --hairline-strong:     var(--color-cream-500);
+
+  --primary:             var(--color-coral-400);
+  --primary-hover:       var(--color-coral-500);
+  --primary-pressed:     var(--color-coral-600);
+  --primary-subtle:      var(--color-coral-100);
+  --on-primary:          #ffffff;
+
+  --text-1:              var(--color-ink-900);
+  --text-2:              var(--color-ink-700);
+  --text-3:              var(--color-ink-500);
+  --text-muted:          var(--color-ink-300);
+  --text-disabled:       var(--color-ink-200);
+}

@@ -1,0 +1,176 @@
+/* ============================================================
+   MEMOIR DESIGN SYSTEM — Typography Tokens
+   Font: Pretendard Variable (Korean-optimized, commercially free)
+   Fallback: Noto Sans KR → system-ui
+   Korean body text benefits from 1.6 line-height and
+   generous letter-spacing at small sizes.
+   ============================================================ */
+
+:root {
+  /* ── Font families ──────────────────────────────────────── */
+  --font-sans: "Pretendard Variable", "Pretendard", "Noto Sans KR",
+               -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+               system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;
+
+  /* ── Font weights ───────────────────────────────────────── */
+  --weight-regular: 400;
+  --weight-medium:  500;
+  --weight-semibold: 600;
+  --weight-bold:    700;
+
+  /* ── Type scale ─────────────────────────────────────────── */
+  /* Hero display — landing, emotion headers */
+  --text-hero-size:    56px;
+  --text-hero-weight:  500;
+  --text-hero-lh:      1.05;
+  --text-hero-ls:      -1.5px;
+
+  /* Headings */
+  --text-h1-size:    40px;
+  --text-h1-weight:  500;
+  --text-h1-lh:      1.15;
+  --text-h1-ls:      -0.8px;
+
+  --text-h2-size:    32px;
+  --text-h2-weight:  500;
+  --text-h2-lh:      1.20;
+  --text-h2-ls:      -0.5px;
+
+  --text-h3-size:    26px;
+  --text-h3-weight:  500;
+  --text-h3-lh:      1.25;
+  --text-h3-ls:      -0.3px;
+
+  --text-h4-size:    22px;
+  --text-h4-weight:  500;
+  --text-h4-lh:      1.30;
+  --text-h4-ls:      -0.2px;
+
+  --text-h5-size:    18px;
+  --text-h5-weight:  500;
+  --text-h5-lh:      1.40;
+  --text-h5-ls:      0px;
+
+  /* Body */
+  --text-subtitle-size:   17px;
+  --text-subtitle-weight: 400;
+  --text-subtitle-lh:     1.55;
+
+  --text-body-lg-size:    17px;
+  --text-body-lg-weight:  400;
+  --text-body-lg-lh:      1.65;
+
+  --text-body-size:       16px;
+  --text-body-weight:     400;
+  --text-body-lh:         1.65;
+
+  --text-body-md-size:    15px;
+  --text-body-md-weight:  400;
+  --text-body-md-lh:      1.60;
+
+  --text-body-sm-size:    14px;
+  --text-body-sm-weight:  400;
+  --text-body-sm-lh:      1.55;
+
+  /* Caption & label */
+  --text-caption-size:    13px;
+  --text-caption-weight:  400;
+  --text-caption-lh:      1.45;
+
+  --text-caption-bold-size:    13px;
+  --text-caption-bold-weight:  600;
+  --text-caption-bold-lh:      1.45;
+
+  /* Button */
+  --text-button-lg-size:   16px;
+  --text-button-md-size:   15px;
+  --text-button-sm-size:   13px;
+  --text-button-weight:    500;
+  --text-button-lh:        1.30;
+}
+
+/* ── Utility classes ──────────────────────────────────────── */
+.text-hero {
+  font-family: var(--font-sans);
+  font-size: var(--text-hero-size);
+  font-weight: var(--text-hero-weight);
+  line-height: var(--text-hero-lh);
+  letter-spacing: var(--text-hero-ls);
+  color: var(--text-1);
+}
+
+.text-h1 {
+  font-family: var(--font-sans);
+  font-size: var(--text-h1-size);
+  font-weight: var(--text-h1-weight);
+  line-height: var(--text-h1-lh);
+  letter-spacing: var(--text-h1-ls);
+  color: var(--text-1);
+}
+.text-h2 {
+  font-family: var(--font-sans);
+  font-size: var(--text-h2-size);
+  font-weight: var(--text-h2-weight);
+  line-height: var(--text-h2-lh);
+  letter-spacing: var(--text-h2-ls);
+  color: var(--text-1);
+}
+.text-h3 {
+  font-family: var(--font-sans);
+  font-size: var(--text-h3-size);
+  font-weight: var(--text-h3-weight);
+  line-height: var(--text-h3-lh);
+  letter-spacing: var(--text-h3-ls);
+  color: var(--text-1);
+}
+.text-h4 {
+  font-family: var(--font-sans);
+  font-size: var(--text-h4-size);
+  font-weight: var(--text-h4-weight);
+  line-height: var(--text-h4-lh);
+  letter-spacing: var(--text-h4-ls);
+  color: var(--text-1);
+}
+.text-h5 {
+  font-family: var(--font-sans);
+  font-size: var(--text-h5-size);
+  font-weight: var(--text-h5-weight);
+  line-height: var(--text-h5-lh);
+  color: var(--text-1);
+}
+.text-subtitle {
+  font-family: var(--font-sans);
+  font-size: var(--text-subtitle-size);
+  font-weight: var(--text-subtitle-weight);
+  line-height: var(--text-subtitle-lh);
+  color: var(--text-2);
+}
+.text-body {
+  font-family: var(--font-sans);
+  font-size: var(--text-body-size);
+  font-weight: var(--text-body-weight);
+  line-height: var(--text-body-lh);
+  color: var(--text-2);
+}
+.text-body-sm {
+  font-family: var(--font-sans);
+  font-size: var(--text-body-sm-size);
+  font-weight: var(--text-body-sm-weight);
+  line-height: var(--text-body-sm-lh);
+  color: var(--text-2);
+}
+.text-caption {
+  font-family: var(--font-sans);
+  font-size: var(--text-caption-size);
+  font-weight: var(--text-caption-weight);
+  line-height: var(--text-caption-lh);
+  color: var(--text-3);
+}
+.text-caption-bold {
+  font-family: var(--font-sans);
+  font-size: var(--text-caption-bold-size);
+  font-weight: var(--text-caption-bold-weight);
+  line-height: var(--text-caption-bold-lh);
+  color: var(--text-3);
+}

@@ -1,0 +1,33 @@
+/* ============================================================
+   MEMOIR DESIGN SYSTEM — Spacing Tokens
+   8px base grid. Mobile-first; generous spacing for seniors.
+   ============================================================ */
+
+:root {
+  /* ── Base spacing scale ─────────────────────────────────── */
+  --space-xxs:   4px;
+  --space-xs:    8px;
+  --space-sm:    12px;
+  --space-md:    16px;
+  --space-lg:    20px;
+  --space-xl:    24px;
+  --space-xxl:   32px;
+  --space-xxxl:  48px;
+
+  /* ── Section / layout spacing ──────────────────────────── */
+  --section-xs:  32px;
+  --section-sm:  48px;
+  --section-md:  64px;
+  --section-lg:  96px;
+  --section-xl:  128px;
+
+  /* ── Touch target minimum (senior accessibility) ────────── */
+  --touch-min:   44px;
+
+  /* ── Layout ─────────────────────────────────────────────── */
+  --page-padding-mobile:   20px;
+  --page-padding-tablet:   32px;
+  --page-max-width:        480px;  /* mobile web app */
+  --card-padding:          var(--space-xl);
+  --card-padding-feature:  var(--space-xxl);
+}

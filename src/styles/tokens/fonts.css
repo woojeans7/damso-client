@@ -1,0 +1,16 @@
+/* ============================================================
+   MEMOIR DESIGN SYSTEM — Web Fonts
+   Primary:  Pretendard Variable (Korean-optimized, variable font)
+             https://github.com/orioncactus/pretendard
+             Loaded via CDN — self-host WOFF2 for production.
+   Fallback: Noto Sans KR (Google Fonts)
+   ============================================================ */
+
+/* Pretendard Variable — variable font, covers all weights 100-900 */
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+
+/* Noto Sans KR — fallback, loaded only when Pretendard unavailable */
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap");
+
+/* JetBrains Mono — monospace for code/transcript views */
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap");
