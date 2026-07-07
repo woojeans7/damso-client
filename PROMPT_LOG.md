@@ -6,6 +6,16 @@
 
 ## 2026-07-08
 
+- **프롬프트 요약**: 로그인 후 `/onboarding/role` 역할 선택 화면 구현
+- **작업 구현 요약**: 약관 동의 이후 이동하는 역할 선택 라우트를 추가하고, 자녀/아버지/어머니 카드 3개와 기본 `child` 선택 상태를 구현. 선택된 카드만 세이지 배경과 `선택됨` pill로 표시되며 CTA는 현재 role 값을 콘솔에 출력하고 추후 역할 저장 API 연동 TODO를 남김
+- **변경점**: `src/app/onboarding/role/page.tsx`, `PROMPT_LOG.md` 수정
+- **검증 결과**: `npm run lint`, `npm run build` 통과
+
+- **프롬프트 요약**: API client 에러 처리 개선 및 `/login` 카카오 로그인 URL 요청 실패 디버깅 강화
+- **작업 구현 요약**: 공통 API 에러에 request URL/status/response body/detail을 보존하고 실패 시 콘솔에 출력하도록 개선. `NEXT_PUBLIC_API_BASE_URL` 누락 시 명확히 실패하며 trailing slash/path slash 조합을 안전하게 처리. 로그인 화면은 카카오 로그인 URL 요청 실패 시 중복 클릭을 막고, JSON `detail` 우선 정책과 500 일반 메시지 정책에 따라 사용자용 에러를 표시
+- **변경점**: `src/lib/api/client.ts`, `src/lib/api/auth.ts`, `src/app/login/page.tsx`, `PROMPT_LOG.md` 수정
+- **검증 결과**: `npm run lint`, `npm run build` 통과
+
 - **프롬프트 요약**: `/agreements` 화면에 Swagger 기준 동의 상태 조회/저장 API 연동
 - **작업 구현 요약**: 사용자 동의 타입과 API 함수(`GET/POST /api/v1/users/me/agreements`)를 추가하고, 페이지 진입 시 `damso_access_token`으로 기존 동의 상태를 조회해 체크박스를 초기화. 누락 항목은 미동의로 처리하며, 4개 모두 체크 시 저장 요청 후 `/onboarding/role`로 이동. 401은 토큰 제거 후 `/login` 이동, 400/기타 오류 메시지 표시
 - **변경점**: `src/lib/api/users.ts` 추가, `src/app/agreements/page.tsx`, `src/components/onboarding/AgreementCheckbox.tsx`, `PROMPT_LOG.md` 수정

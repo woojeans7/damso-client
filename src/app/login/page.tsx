@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Button, Card } from "@/components/ui";
 import { OnboardingShell } from "@/components/onboarding/OnboardingShell";
 import { getKakaoLoginUrl } from "@/lib/api/auth";
+import { ApiError } from "@/lib/api/client";
 
 const loginHighlights = [
   {
@@ -18,6 +19,16 @@ const loginHighlights = [
 ];
 
 const heroAvatarHeight = 93;
+const fallbackLoginErrorMessage = "로그인 요청에 실패했습니다. 잠시 후 다시 시도해주세요.";
+
+function getLoginErrorMessage(error: unknown) {
+  if (error instanceof ApiError) {
+    if (error.status >= 500) return fallbackLoginErrorMessage;
+    return error.detail ?? fallbackLoginErrorMessage;
+  }
+
+  return fallbackLoginErrorMessage;
+}
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -32,8 +43,9 @@ export default function LoginPage() {
     try {
       const { loginUrl } = await getKakaoLoginUrl();
       window.location.href = loginUrl;
-    } catch {
-      setErrorMessage("카카오 로그인을 시작하지 못했어요. 잠시 후 다시 시도해주세요.");
+    } catch (error) {
+      console.error("[LoginPage] Failed to start Kakao login", error);
+      setErrorMessage(getLoginErrorMessage(error));
       setIsLoading(false);
     }
   };
