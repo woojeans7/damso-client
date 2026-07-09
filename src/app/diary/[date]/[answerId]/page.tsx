@@ -151,10 +151,36 @@ export default function CutDetailPage({
                 className="h-full w-full object-cover"
               />
             )}
+            <p
+              className="absolute"
+              style={{
+                left: "18px",
+                right: "18px",
+                bottom: "14px",
+                fontFamily: "var(--font-sans)",
+                fontSize: "14px",
+                fontWeight: "var(--weight-medium)",
+                color: "#fff",
+              }}
+            >
+              오늘의 질문: {clip.questionText}
+            </p>
           </div>
 
-          {/* 원본 질문 텍스트를 반환하는 API가 없어(docs/route-map.md 참고) "질문" 카드는 생략하고
-              실제 데이터가 있는 AI 요약/한마디만 표시한다. */}
+          <Card variant="base" elevation="subtle" padding="var(--space-md)">
+            <div className="flex items-start gap-2">
+              <AccentDot color="var(--primary)" />
+              <div>
+                <p style={{ fontFamily: "var(--font-sans)", fontSize: "15px", fontWeight: "var(--weight-medium)", color: "var(--text-1)" }}>
+                  질문
+                </p>
+                <p className="text-caption" style={{ marginTop: "4px" }}>
+                  {clip.questionText}
+                </p>
+              </div>
+            </div>
+          </Card>
+
           <Card variant="sage" elevation="subtle" padding="var(--space-md)">
             <div className="flex items-start gap-2">
               <AccentDot color="var(--color-sage-400)" />

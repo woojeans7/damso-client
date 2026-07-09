@@ -61,6 +61,7 @@ export function submitAnswer(input: SubmitAnswerInput) {
 
 export interface AnswerClip {
   answerId: number;
+  questionText: string;
   videoUrl: string | null;
   thumbnailUrl: string | null;
   transcript: string | null;
