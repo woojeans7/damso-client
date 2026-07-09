@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import Webcam from "react-webcam";
 import { BottomNav, Button, Card } from "@/components/ui";
 import { requestAnswerUploadUrl, submitAnswer, uploadAnswerVideo } from "@/lib/api/answers";
+import { getQuestionDetail } from "@/lib/api/questions";
+import type { ReceivedQuestionDetail, UserRole } from "@/lib/api/questions";
 
 type CaptureState = "idle" | "recording" | "recorded";
 type SubmitState = "idle" | "uploading" | "submitting" | "submitted" | "error";
@@ -15,6 +17,12 @@ const NAV_ITEMS = [
   { id: "diary", label: "다이어리" },
   { id: "settings", label: "설정" },
 ];
+
+const ROLE_LABEL: Record<UserRole, string> = {
+  child: "자녀",
+  mother: "엄마",
+  father: "아빠",
+};
 
 function formatDuration(totalSeconds: number) {
   const m = Math.floor(totalSeconds / 60)
@@ -46,6 +54,20 @@ export default function RecordAnswerPage({ params }: { params: Promise<{ questio
 
   const [submitState, setSubmitState] = useState<SubmitState>("idle");
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const [question, setQuestion] = useState<ReceivedQuestionDetail | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    getQuestionDetail(questionSendId)
+      .then((data) => {
+        if (!cancelled) setQuestion(data);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [questionSendId]);
 
   useEffect(() => {
     if (captureState !== "recording") return;
@@ -109,9 +131,11 @@ export default function RecordAnswerPage({ params }: { params: Promise<{ questio
     setSubmitState("uploading");
 
     try {
-      const videoMimeType = recordedBlob.type || "video/webm";
+      // MediaRecorder가 주는 타입엔 코덱 정보가 붙어있는데(예: "video/webm;codecs=vp9,opus"),
+      // 백엔드는 정확히 일치하는 몇 종류(video/mp4, video/webm 등)만 허용해 415를 반환한다.
+      const videoMimeType = (recordedBlob.type || "video/webm").split(";")[0].trim();
       const { uploadUrl } = await requestAnswerUploadUrl({ questionSendId, videoMimeType });
-      await uploadAnswerVideo(uploadUrl, recordedBlob);
+      await uploadAnswerVideo(uploadUrl, recordedBlob, videoMimeType);
 
       setSubmitState("submitting");
       const result = await submitAnswer({
@@ -182,10 +206,10 @@ export default function RecordAnswerPage({ params }: { params: Promise<{ questio
         />
         <div>
           <p className="text-body-md" style={{ fontWeight: "var(--weight-medium)", color: "var(--text-1)" }}>
-            엄마 · 김영희에게 온 질문
+            {question ? `${ROLE_LABEL[question.sender.role ?? "child"]} · ${question.sender.displayName ?? "가족"}에게 온 질문` : "질문을 불러오는 중..."}
           </p>
           <p className="text-body" style={{ marginTop: "4px" }}>
-            나에게 오늘 하고 싶은 말이 있어?
+            {question?.questionText ?? ""}
           </p>
         </div>
       </Card>

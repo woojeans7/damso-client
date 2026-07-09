@@ -4,8 +4,14 @@ import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Camera, Lock, MessageCircle } from "lucide-react";
 import { Badge, BottomNav, Button, Card } from "@/components/ui";
-import { getReceivedQuestionDetail, markReceivedQuestionRead } from "@/lib/api/answers";
-import type { QuestionStatus, ReceivedQuestionDetail } from "@/lib/api/answers";
+import {
+  getReceivedQuestionDetail,
+  markReceivedQuestionRead,
+} from "@/lib/api/answers";
+import type {
+  QuestionStatus,
+  ReceivedQuestionDetail,
+} from "@/lib/api/answers";
 import type { UserRole } from "@/lib/api/users";
 
 const NAV_ITEMS = [
@@ -31,22 +37,30 @@ const STATUS_LABEL: Record<QuestionStatus, string> = {
 function formatSender(question: ReceivedQuestionDetail) {
   const role = ROLE_LABEL[question.sender.role];
   const name = question.sender.displayName;
+
   return name && name !== role ? `${role} · ${name}` : role;
 }
 
 function getRelationshipLabel(question: ReceivedQuestionDetail | null) {
   if (!question) return "가족";
+
   return ROLE_LABEL[question.sender.role];
 }
 
-function getStatus(question: ReceivedQuestionDetail) {
+function getStatus(question: ReceivedQuestionDetail): QuestionStatus {
   if (question.answered) return "answered";
+
   return question.status;
 }
 
-export default function ReceivedQuestionDetailPage({ params }: { params: Promise<{ questionSendId: string }> }) {
+export default function ReceivedQuestionDetailPage({
+  params,
+}: {
+  params: Promise<{ questionSendId: string }>;
+}) {
   const { questionSendId } = use(params);
   const router = useRouter();
+
   const [question, setQuestion] = useState<ReceivedQuestionDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -57,7 +71,9 @@ export default function ReceivedQuestionDetailPage({ params }: { params: Promise
     getReceivedQuestionDetail(questionSendId)
       .then((data) => {
         if (cancelled) return;
+
         setQuestion(data);
+
         if (!data.read) {
           markReceivedQuestionRead(questionSendId).catch((err) => {
             console.error("[Questions] Failed to mark question as read", err);
@@ -66,10 +82,15 @@ export default function ReceivedQuestionDetailPage({ params }: { params: Promise
       })
       .catch((err) => {
         console.error("[Questions] Failed to load received question detail", err);
-        if (!cancelled) setError("질문을 찾을 수 없거나 접근 권한이 없어요.");
+
+        if (!cancelled) {
+          setError("질문을 찾을 수 없거나 접근 권한이 없어요.");
+        }
       })
       .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       });
 
     return () => {
@@ -105,6 +126,7 @@ export default function ReceivedQuestionDetailPage({ params }: { params: Promise
         >
           <ArrowLeft size={18} />
         </button>
+
         <div>
           <p
             style={{
@@ -116,6 +138,7 @@ export default function ReceivedQuestionDetailPage({ params }: { params: Promise
           >
             받은 질문
           </p>
+
           <h1
             style={{
               fontFamily: "var(--font-sans)",
@@ -131,6 +154,7 @@ export default function ReceivedQuestionDetailPage({ params }: { params: Promise
             <br />
             질문이에요
           </h1>
+
           <p className="text-body-sm" style={{ marginTop: "10px" }}>
             질문에 대해 답변 팁을 참고해도 돼요.
           </p>
@@ -138,17 +162,31 @@ export default function ReceivedQuestionDetailPage({ params }: { params: Promise
       </header>
 
       {loading && (
-        <p className="text-body-sm text-center" style={{ color: "var(--text-3)" }}>
+        <p
+          className="text-body-sm text-center"
+          style={{ color: "var(--text-3)" }}
+        >
           질문을 불러오는 중...
         </p>
       )}
 
       {!loading && error && (
-        <Card variant="base" elevation="flat" padding="16px" bg="var(--color-error-bg)">
+        <Card
+          variant="base"
+          elevation="flat"
+          padding="16px"
+          bg="var(--color-error-bg)"
+        >
           <p className="text-body-sm" style={{ color: "var(--color-error)" }}>
             {error}
           </p>
-          <Button variant="secondary" size="md" onClick={() => router.push("/questions")} style={{ marginTop: "14px" }}>
+
+          <Button
+            variant="secondary"
+            size="md"
+            onClick={() => router.push("/questions")}
+            style={{ marginTop: "14px" }}
+          >
             목록으로 돌아가기
           </Button>
         </Card>
@@ -156,7 +194,12 @@ export default function ReceivedQuestionDetailPage({ params }: { params: Promise
 
       {question && (
         <>
-          <Card variant="feature" elevation="card" padding="20px" bg="var(--color-coral-50)">
+          <Card
+            variant="feature"
+            elevation="card"
+            padding="20px"
+            bg="var(--color-coral-50)"
+          >
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-3">
                 <span
@@ -174,6 +217,7 @@ export default function ReceivedQuestionDetailPage({ params }: { params: Promise
                 >
                   <MessageCircle size={19} />
                 </span>
+
                 <div>
                   <p
                     style={{
@@ -185,6 +229,7 @@ export default function ReceivedQuestionDetailPage({ params }: { params: Promise
                   >
                     {formatSender(question)}
                   </p>
+
                   <p
                     style={{
                       fontFamily: "var(--font-sans)",
@@ -199,7 +244,11 @@ export default function ReceivedQuestionDetailPage({ params }: { params: Promise
                   </p>
                 </div>
               </div>
-              <Badge variant={status === "answered" ? "success" : "default"} size="md">
+
+              <Badge
+                variant={status === "answered" ? "success" : "default"}
+                size="md"
+              >
                 {STATUS_LABEL[status]}
               </Badge>
             </div>
@@ -208,7 +257,12 @@ export default function ReceivedQuestionDetailPage({ params }: { params: Promise
           <div className="flex flex-col gap-3">
             <Card variant="base" elevation="subtle" padding="16px">
               <div className="flex items-start gap-3">
-                <Camera size={20} color="var(--color-sage-500)" style={{ flexShrink: 0, marginTop: "2px" }} />
+                <Camera
+                  size={20}
+                  color="var(--color-sage-500)"
+                  style={{ flexShrink: 0, marginTop: "2px" }}
+                />
+
                 <div>
                   <p
                     style={{
@@ -220,6 +274,7 @@ export default function ReceivedQuestionDetailPage({ params }: { params: Promise
                   >
                     답변 팁
                   </p>
+
                   <p className="text-body-sm" style={{ marginTop: "6px" }}>
                     짧아도 괜찮아요. 떠오르는 장면 하나부터 말해보세요.
                   </p>
@@ -229,7 +284,12 @@ export default function ReceivedQuestionDetailPage({ params }: { params: Promise
 
             <Card variant="base" elevation="subtle" padding="16px">
               <div className="flex items-start gap-3">
-                <Lock size={20} color="var(--color-amber-300)" style={{ flexShrink: 0, marginTop: "2px" }} />
+                <Lock
+                  size={20}
+                  color="var(--color-amber-300)"
+                  style={{ flexShrink: 0, marginTop: "2px" }}
+                />
+
                 <div>
                   <p
                     style={{
@@ -241,6 +301,7 @@ export default function ReceivedQuestionDetailPage({ params }: { params: Promise
                   >
                     프라이버시
                   </p>
+
                   <p className="text-body-sm" style={{ marginTop: "6px" }}>
                     촬영 후 저장 여부를 직접 선택할 수 있습니다.
                   </p>
@@ -261,6 +322,7 @@ export default function ReceivedQuestionDetailPage({ params }: { params: Promise
         >
           질문에 답변하기
         </Button>
+
         <BottomNav
           items={NAV_ITEMS}
           activeId="qna"
