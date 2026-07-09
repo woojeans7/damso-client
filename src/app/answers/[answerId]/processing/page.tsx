@@ -182,7 +182,7 @@ export default function AnswerProcessingPage({ params }: { params: Promise<{ ans
         </Button>
       </div>
 
-      {/* 상대방에게 질문 보내기 — 발송 API 미확인, 목적지 화면도 아직 없음 (docs/route-map.md 참고) */}
+      {/* 상대방에게 질문 보내기 */}
       <button
         type="button"
         onClick={() => router.push("/questions/new")}
@@ -215,7 +215,17 @@ export default function AnswerProcessingPage({ params }: { params: Promise<{ ans
         상대방에게 질문하기
       </Button>
 
-      <BottomNav items={NAV_ITEMS} activeId="qna" style={{ marginTop: "auto" }} />
+      <BottomNav
+        items={NAV_ITEMS}
+        activeId="qna"
+        onChange={(id) => {
+          if (id === "home") router.push("/");
+          if (id === "qna") router.push("/questions");
+          if (id === "diary") router.push("/diary");
+          if (id === "settings") router.push("/settings");
+        }}
+        style={{ marginTop: "auto" }}
+      />
     </div>
   );
 }

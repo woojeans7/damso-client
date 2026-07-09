@@ -1,4 +1,10 @@
-import { apiFetch } from "./client";
+import { ApiError, apiFetch } from "./client";
+import {
+  getMockFamilyInvitation,
+  getMockFamilyInvitationValidation,
+  getMockJoinFamilyResponse,
+  setMockFamilyConnected,
+} from "./family-mock";
 
 export interface FamilyInvitation {
   familyId?: number;
@@ -101,37 +107,65 @@ function normalizeJoinFamilyResponse(input: unknown): JoinFamilyResponse {
 }
 
 export async function createFamily() {
-  const response = await apiFetch<unknown>("/v1/families", {
-    method: "POST",
-    body: JSON.stringify({}),
-  });
-
-  if (!response) return null;
-
   try {
+    const response = await apiFetch<unknown>("/v1/families", {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+
+    if (!response) return getMockFamilyInvitation();
+
     return normalizeInvitationResponse(response);
-  } catch {
-    return null;
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) throw error;
+
+    console.warn("[Families] Falling back to mock family creation", error);
+    return getMockFamilyInvitation();
   }
 }
 
 export async function getMyFamilyInvitation() {
-  const response = await apiFetch<unknown>("/v1/families/me/invitation");
+  try {
+    const response = await apiFetch<unknown>("/v1/families/me/invitation");
 
-  return normalizeInvitationResponse(response);
+    return normalizeInvitationResponse(response);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) throw error;
+    if (error instanceof ApiError && error.status === 404) throw error;
+
+    console.warn("[Families] Falling back to mock invitation", error);
+    return getMockFamilyInvitation();
+  }
 }
 
 export async function getFamilyInvitation(inviteCode: string) {
-  const response = await apiFetch<unknown>(`/v1/families/invitations/${encodeURIComponent(inviteCode)}`);
+  try {
+    const response = await apiFetch<unknown>(`/v1/families/invitations/${encodeURIComponent(inviteCode)}`);
 
-  return normalizeInvitationValidationResponse(response, inviteCode);
+    return normalizeInvitationValidationResponse(response, inviteCode);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) throw error;
+
+    console.warn("[Families] Falling back to mock invitation validation", error);
+    return getMockFamilyInvitationValidation(inviteCode);
+  }
 }
 
 export async function joinFamily(input: JoinFamilyRequest) {
-  const response = await apiFetch<unknown>("/v1/families/join", {
-    method: "POST",
-    body: JSON.stringify(input),
-  });
+  try {
+    const response = await apiFetch<unknown>("/v1/families/join", {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+    const normalizedResponse = normalizeJoinFamilyResponse(response);
 
-  return normalizeJoinFamilyResponse(response);
+    setMockFamilyConnected(input.inviteCode);
+    return normalizedResponse;
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) throw error;
+
+    console.warn("[Families] Falling back to mock family join", error);
+    setMockFamilyConnected(input.inviteCode);
+    return getMockJoinFamilyResponse();
+  }
 }

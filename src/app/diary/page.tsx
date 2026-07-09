@@ -231,7 +231,17 @@ export default function DiaryPage() {
         </div>
       ))}
 
-      <BottomNav items={NAV_ITEMS} activeId="diary" style={{ marginTop: "auto" }} />
+      <BottomNav
+        items={NAV_ITEMS}
+        activeId="diary"
+        onChange={(id) => {
+          if (id === "home") router.push("/");
+          if (id === "qna") router.push("/questions");
+          if (id === "diary") router.push("/diary");
+          if (id === "settings") router.push("/settings");
+        }}
+        style={{ marginTop: "auto" }}
+      />
     </div>
   );
 }

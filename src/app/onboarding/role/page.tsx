@@ -74,7 +74,7 @@ export default function RolePage() {
       await updateMyRole({ role: selectedRole });
       const onboardingStatus = await getMyOnboardingStatus();
 
-      router.push(onboardingStatus.familyConnected || onboardingStatus.onboardingCompleted ? "/" : "/family/create");
+      router.push(onboardingStatus.familyConnected ? "/" : "/onboarding/family-connect");
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
         clearAccessToken();

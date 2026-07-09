@@ -172,7 +172,17 @@ export default function RecordPermissionPage({ params }: { params: Promise<{ que
         </Button>
       </div>
 
-      <BottomNav items={NAV_ITEMS} activeId="qna" style={{ marginTop: "auto" }} />
+      <BottomNav
+        items={NAV_ITEMS}
+        activeId="qna"
+        onChange={(id) => {
+          if (id === "home") router.push("/");
+          if (id === "qna") router.push("/questions");
+          if (id === "diary") router.push("/diary");
+          if (id === "settings") router.push("/settings");
+        }}
+        style={{ marginTop: "auto" }}
+      />
     </div>
   );
 }

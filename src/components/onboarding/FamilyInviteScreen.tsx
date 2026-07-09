@@ -1,14 +1,33 @@
 "use client";
 
 import Image from "next/image";
+import type { ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Card } from "@/components/ui";
-import { OnboardingShell } from "@/components/onboarding/OnboardingShell";
+import { Button } from "@/components/ui";
 import { ApiError } from "@/lib/api/client";
 import { createFamily, getMyFamilyInvitation } from "@/lib/api/families";
 import type { FamilyInvitation } from "@/lib/api/families";
 import { clearAccessToken, getAccessToken } from "@/lib/auth/token";
+
+const INVITE_CODE_CHARACTERS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const INVITE_CODE_LENGTH = 6;
+
+function generateInviteCode() {
+  const randomValues = new Uint32Array(INVITE_CODE_LENGTH);
+
+  if (globalThis.crypto?.getRandomValues) {
+    globalThis.crypto.getRandomValues(randomValues);
+  } else {
+    randomValues.forEach((_, index) => {
+      randomValues[index] = Math.floor(Math.random() * INVITE_CODE_CHARACTERS.length);
+    });
+  }
+
+  const rawCode = Array.from(randomValues, (value) => INVITE_CODE_CHARACTERS[value % INVITE_CODE_CHARACTERS.length]).join("");
+
+  return `${rawCode.slice(0, 3)}-${rawCode.slice(3)}`;
+}
 
 function getFamilyCreateErrorMessage(error: unknown) {
   if (error instanceof ApiError) {
@@ -42,15 +61,20 @@ export function FamilyInviteScreen() {
   const [isSharing, setIsSharing] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [noticeMessage, setNoticeMessage] = useState("");
+  const [fallbackInviteCode, setFallbackInviteCode] = useState("");
+
+  const displayInviteCode = invitation?.inviteCode ?? fallbackInviteCode;
 
   const inviteText = useMemo(() => {
-    if (!invitation) return "";
+    if (!invitation) {
+      return fallbackInviteCode ? `담소 가족 초대 코드: ${fallbackInviteCode}` : "";
+    }
 
     return (
       invitation.shareText ??
       `담소 가족 초대 코드: ${invitation.inviteCode}${invitation.inviteUrl ? `\n${invitation.inviteUrl}` : ""}`
     );
-  }, [invitation]);
+  }, [fallbackInviteCode, invitation]);
 
   const loadInvitation = useCallback(async () => {
     const token = getAccessToken();
@@ -93,6 +117,7 @@ export function FamilyInviteScreen() {
     if (didFetchRef.current) return;
     didFetchRef.current = true;
 
+    setFallbackInviteCode(generateInviteCode());
     void loadInvitation();
   }, [loadInvitation]);
 
@@ -109,7 +134,7 @@ export function FamilyInviteScreen() {
   };
 
   const handleShare = async () => {
-    if (!invitation || !inviteText || isSharing) return;
+    if (!inviteText || isSharing) return;
 
     setIsSharing(true);
     setErrorMessage("");
@@ -122,7 +147,7 @@ export function FamilyInviteScreen() {
           text: inviteText,
         };
 
-        if (invitation.inviteUrl) {
+        if (invitation?.inviteUrl) {
           shareData.url = invitation.inviteUrl;
         }
 
@@ -141,119 +166,199 @@ export function FamilyInviteScreen() {
   };
 
   return (
-    <OnboardingShell
-      eyebrow="가족 연결"
-      title={
-        <>
-          가족 휴대폰과
-          <br />
-          연결하세요
-        </>
-      }
-      description="카카오톡 초대 링크나 연결 코드로 부모님과 자녀 휴대폰을 연결합니다."
-      contentJustify="flex-start"
-      contentPadding="var(--space-lg) 0 var(--space-sm)"
-      style={{
-        maxWidth: "430px",
-        padding: "var(--space-xxl) var(--page-padding-mobile) max(var(--space-lg), env(safe-area-inset-bottom))",
-      }}
-      footer={
-        <>
-          {noticeMessage && (
-            <p className="text-caption" role="status" style={{ margin: 0, textAlign: "center", color: "var(--color-success)" }}>
-              {noticeMessage}
-            </p>
-          )}
-          {errorMessage && (
-            <p className="text-caption" role="alert" style={{ margin: 0, textAlign: "center", color: "var(--color-error)" }}>
-              {errorMessage}
-            </p>
-          )}
-          <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: "var(--space-sm)" }}>
-            <Button
-              size="md"
-              fullWidth
-              loading={isSharing}
-              disabled={!invitation || isLoading || isSharing}
-              onClick={handleShare}
-              style={{
-                minHeight: "52px",
-                padding: "0 var(--space-xs)",
-                background: "var(--color-amber-100)",
-                color: "var(--color-amber-500)",
-                fontSize: "14px",
-              }}
-            >
-              카카오톡으로 초대
-            </Button>
-            <Button
-              size="md"
-              variant="secondary"
-              fullWidth
-              disabled={isSharing}
-              onClick={() => router.push("/onboarding/family-code")}
-              style={{
-                minHeight: "52px",
-                padding: "0 var(--space-xs)",
-                background: "var(--canvas)",
-                border: "1.5px solid var(--color-coral-100)",
-                color: "var(--color-coral-500)",
-                fontSize: "14px",
-              }}
-            >
-              코드로 연결하기
-            </Button>
-          </div>
-          <p className="text-caption" style={{ margin: "var(--space-xxs) 0 0", textAlign: "center", color: "var(--text-2)" }}>
-            카카오톡으로 가족들을 연결할 수 있어요.
-          </p>
-        </>
-      }
-    >
-      <FamilyConnectionCard />
-      <InviteCodeCard inviteCode={invitation?.inviteCode} isLoading={isLoading} />
-      <KakaoInviteInfoCard />
-    </OnboardingShell>
+    <FamilyOnboardingFrame>
+      <div style={{ display: "flex", minHeight: 0, flex: 1, flexDirection: "column", width: "100%" }}>
+        <PhoneCard
+          eyebrow="가족 연결"
+          title={
+            <>
+              가족 대표와
+              <br />
+              연결하세요
+            </>
+          }
+          description="카카오톡 초대 링크나 연결 코드로 부모님/자녀 휴대폰을 연결합니다."
+          footer={
+            <>
+              {noticeMessage && (
+                <p className="text-caption" role="status" style={{ margin: 0, textAlign: "center", color: "var(--color-success)" }}>
+                  {noticeMessage}
+                </p>
+              )}
+              {errorMessage && (
+                <p className="text-caption" role="alert" style={{ margin: 0, textAlign: "center", color: "var(--color-error)" }}>
+                  {errorMessage}
+                </p>
+              )}
+              <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: "var(--space-sm)" }}>
+                <Button
+                  size="md"
+                  fullWidth
+                  loading={isSharing}
+                  disabled={isLoading || isSharing || !inviteText}
+                  onClick={handleShare}
+                  style={{
+                    minHeight: "50px",
+                    padding: "0 var(--space-xs)",
+                    background: "var(--color-kakao-yellow)",
+                    color: "var(--color-kakao-text)",
+                    fontSize: "14px",
+                    fontWeight: "var(--weight-bold)",
+                  }}
+                >
+                  카카오톡으로 초대
+                </Button>
+                <Button
+                  size="md"
+                  variant="secondary"
+                  fullWidth
+                  disabled={isSharing}
+                  onClick={() => router.push("/onboarding/family-code")}
+                  style={{
+                    minHeight: "50px",
+                    padding: "0 var(--space-xs)",
+                    background: "var(--color-cream-100)",
+                    border: "1.5px solid var(--color-cream-300)",
+                    color: "var(--color-ink-700)",
+                    fontSize: "14px",
+                    fontWeight: "var(--weight-bold)",
+                  }}
+                >
+                  코드로 연결하기
+                </Button>
+              </div>
+              <p className="text-caption" style={{ margin: 0, textAlign: "center", color: "var(--text-2)" }}>
+                카카오톡으로 가족들을 연결할 수 있어요.
+              </p>
+            </>
+          }
+        >
+          <FamilyConnectionPanel connectorLabel="카카오톡 연결" parentSrc="/father.png" />
+          <InviteCodeCard inviteCode={displayInviteCode} isLoading={!displayInviteCode} />
+          <InfoBox
+            title="카카오톡 초대 보내기"
+            description="카카오톡에서 링크를 누르면 알아서 초대 코드로 바로 연결됩니다."
+            background="var(--color-cream-100)"
+          />
+        </PhoneCard>
+      </div>
+    </FamilyOnboardingFrame>
   );
 }
 
-function FamilyConnectionCard() {
+export function FamilyOnboardingFrame({ children }: { children: ReactNode }) {
   return (
-    <Card
-      variant="sage"
-      elevation="subtle"
-      padding="var(--space-xl) var(--space-lg)"
-      bg="var(--color-sage-50)"
+    <main
+      className="mx-auto flex min-h-screen w-full flex-col"
       style={{
-        minHeight: "168px",
-        border: "1px solid var(--color-sage-100)",
-        borderRadius: "var(--radius-xxxl)",
+        maxWidth: "430px",
+        minHeight: "100svh",
+        background: "var(--canvas)",
+        padding: "var(--space-xxxl) var(--page-padding-mobile) max(var(--space-lg), env(safe-area-inset-bottom))",
       }}
     >
-      <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: "var(--space-sm)" }}>
+      {children}
+    </main>
+  );
+}
+
+export function PhoneCard({
+  eyebrow,
+  title,
+  description,
+  children,
+  footer,
+}: {
+  eyebrow: string;
+  title: ReactNode;
+  description: string;
+  children: ReactNode;
+  footer: ReactNode;
+}) {
+  return (
+    <div
+      style={{
+        width: "100%",
+        display: "flex",
+        minHeight: 0,
+        flex: 1,
+        flexDirection: "column",
+      }}
+    >
+      <header style={{ display: "flex", flexDirection: "column", gap: "var(--space-sm)" }}>
+        <p
+          style={{
+            margin: 0,
+            color: "var(--color-coral-500)",
+            fontSize: "13px",
+            fontWeight: "var(--weight-semibold)",
+            letterSpacing: "0",
+          }}
+        >
+          {eyebrow}
+        </p>
+        <h1
+          style={{
+            margin: 0,
+            color: "var(--text-1)",
+            fontSize: "32px",
+            fontWeight: "var(--weight-bold)",
+            lineHeight: 1.16,
+            letterSpacing: "0",
+          }}
+        >
+          {title}
+        </h1>
+        <p className="text-body-sm" style={{ margin: 0, color: "var(--text-2)", lineHeight: 1.55 }}>
+          {description}
+        </p>
+      </header>
+      <section style={{ display: "flex", flexDirection: "column", gap: "var(--space-md)", padding: "var(--space-lg) 0" }}>
+        {children}
+      </section>
+      <footer style={{ display: "flex", flexDirection: "column", gap: "var(--space-sm)", marginTop: "auto" }}>{footer}</footer>
+    </div>
+  );
+}
+
+export function FamilyConnectionPanel({ connectorLabel, parentSrc }: { connectorLabel: string; parentSrc: string }) {
+  return (
+    <div
+      style={{
+        minHeight: "162px",
+        borderRadius: "var(--radius-xxxl)",
+        background: "var(--color-sage-50)",
+        border: "1px solid var(--color-sage-100)",
+        padding: "var(--space-lg) var(--space-md)",
+      }}
+    >
+      <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: "var(--space-xs)" }}>
         <FamilyAvatar src="/children.png" label="자녀" />
         <span
           style={{
-            alignSelf: "center",
             display: "inline-flex",
+            width: "92px",
+            minWidth: "92px",
+            flex: "0 0 92px",
             minHeight: "34px",
             alignItems: "center",
             justifyContent: "center",
             borderRadius: "var(--radius-full)",
-            background: "var(--canvas)",
+            background: "var(--color-amber-100)",
             padding: "0 var(--space-sm)",
-            boxShadow: "var(--elevation-subtle)",
-            color: "var(--color-sage-600)",
+            color: "var(--color-amber-500)",
             fontSize: "13px",
-            fontWeight: "var(--weight-semibold)",
+            fontWeight: "var(--weight-bold)",
             whiteSpace: "nowrap",
+            boxSizing: "border-box",
+            boxShadow: "var(--elevation-subtle)",
           }}
         >
-          카카오톡 연결
+          {connectorLabel}
         </span>
-        <FamilyAvatar src="/father.png" label="부모" />
+        <FamilyAvatar src={parentSrc} label="부모" />
       </div>
-    </Card>
+    </div>
   );
 }
 
@@ -263,54 +368,49 @@ function FamilyAvatar({ src, label }: { src: string; label: string }) {
       <div
         style={{
           position: "relative",
-          width: "80px",
-          height: "80px",
+          width: "78px",
+          height: "78px",
           overflow: "hidden",
           borderRadius: "var(--radius-full)",
           background: "var(--color-cream-100)",
           boxShadow: "var(--elevation-subtle)",
         }}
       >
-        <Image src={src} alt={label} fill sizes="80px" style={{ objectFit: "cover" }} priority />
+        <Image src={src} alt={label} fill sizes="78px" style={{ objectFit: "cover" }} priority />
       </div>
       <span style={{ color: "var(--text-2)", fontSize: "14px", fontWeight: "var(--weight-semibold)" }}>{label}</span>
     </div>
   );
 }
 
-function InviteCodeCard({ inviteCode, isLoading }: { inviteCode?: string; isLoading: boolean }) {
+function InviteCodeCard({ inviteCode, isLoading }: { inviteCode: string; isLoading: boolean }) {
   return (
-    <Card
-      variant="base"
-      elevation="subtle"
-      padding="var(--space-md) var(--space-lg)"
-      bg="var(--canvas)"
+    <div
       style={{
-        minHeight: "76px",
-        border: "1px solid var(--hairline-soft)",
+        minHeight: "72px",
         borderRadius: "var(--radius-xl)",
+        background: "var(--color-cream-100)",
+        border: "1px solid var(--hairline-soft)",
+        padding: "var(--space-md) var(--space-lg)",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--space-md)" }}>
         <div style={{ minWidth: 0 }}>
-          <p
-            className="text-caption"
-            style={{ margin: 0, color: "var(--color-coral-500)", fontWeight: "var(--weight-semibold)" }}
-          >
+          <p className="text-caption" style={{ margin: 0, color: "var(--color-coral-500)", fontWeight: "var(--weight-semibold)" }}>
             연결 코드
           </p>
           <p
             style={{
               margin: "4px 0 0",
-              color: inviteCode ? "var(--text-1)" : "var(--text-3)",
-              fontFamily: inviteCode ? "var(--font-mono)" : "var(--font-sans)",
-              fontSize: inviteCode ? "25px" : "15px",
+              color: "var(--text-1)",
+              fontFamily: "var(--font-mono)",
+              fontSize: "24px",
               fontWeight: "var(--weight-bold)",
               lineHeight: 1.1,
               letterSpacing: "0",
             }}
           >
-            {isLoading ? "불러오는 중..." : inviteCode || "코드 없음"}
+            {isLoading ? "코드 생성 중" : inviteCode}
           </p>
         </div>
         <span
@@ -328,20 +428,27 @@ function InviteCodeCard({ inviteCode, isLoading }: { inviteCode?: string; isLoad
           직접 입력용
         </span>
       </div>
-    </Card>
+    </div>
   );
 }
 
-function KakaoInviteInfoCard() {
+export function InfoBox({
+  title,
+  description,
+  background = "var(--canvas)",
+}: {
+  title: string;
+  description: string;
+  background?: string;
+}) {
   return (
-    <Card
-      variant="base"
-      elevation="card"
-      padding="var(--space-lg)"
-      bg="var(--canvas)"
+    <div
       style={{
-        border: "1px solid var(--hairline-soft)",
         borderRadius: "var(--radius-xl)",
+        background,
+        border: "1px solid var(--hairline-soft)",
+        padding: "var(--space-lg)",
+        boxShadow: "var(--elevation-subtle)",
       }}
     >
       <div style={{ display: "flex", gap: "var(--space-sm)", alignItems: "flex-start" }}>
@@ -357,14 +464,12 @@ function KakaoInviteInfoCard() {
           }}
         />
         <div style={{ minWidth: 0 }}>
-          <p style={{ margin: 0, color: "var(--text-1)", fontSize: "16px", fontWeight: "var(--weight-bold)" }}>
-            카카오톡 초대 보내기
-          </p>
-          <p className="text-body-sm" style={{ margin: "6px 0 0", color: "var(--text-2)", whiteSpace: "pre-line" }}>
-            {"카카오톡에서 링크를 누르면\n살아있는 회고록 앱으로 바로 연결됩니다."}
+          <p style={{ margin: 0, color: "var(--text-1)", fontSize: "16px", fontWeight: "var(--weight-bold)" }}>{title}</p>
+          <p className="text-body-sm" style={{ margin: "6px 0 0", color: "var(--text-2)", lineHeight: 1.55 }}>
+            {description}
           </p>
         </div>
       </div>
-    </Card>
+    </div>
   );
 }

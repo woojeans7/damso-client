@@ -1,5 +1,5 @@
 import { FamilyCodeScreen } from "@/components/onboarding/FamilyCodeScreen";
 
-export default function FamilyJoinPage() {
+export default function OnboardingFamilyCodePage() {
   return <FamilyCodeScreen />;
 }

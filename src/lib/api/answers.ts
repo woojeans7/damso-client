@@ -1,6 +1,137 @@
 import { apiFetch } from "./client";
+import type { QuestionDepth } from "./questions";
+import type { UserRole } from "./users";
 
 export type AnswerStatus = "submitted" | "processing" | "completed" | "failed";
+export type QuestionStatus = "sent" | "answered" | "cancelled" | "expired";
+
+export interface QuestionSender {
+  userId: number;
+  displayName: string;
+  profileImageUrl: string | null;
+  role: UserRole;
+}
+
+export interface ReceivedQuestion {
+  questionSendId: number;
+  sender: QuestionSender;
+  questionText: string;
+  depth: QuestionDepth;
+  receivedAt: string;
+  read: boolean;
+  readAt: string | null;
+  answered: boolean;
+  answeredAt: string | null;
+  status: QuestionStatus;
+}
+
+export interface ReceivedQuestionDetail extends ReceivedQuestion {
+  source: "recommendation" | "custom";
+  recommendationId: number | null;
+}
+
+export interface GetReceivedQuestionsOptions {
+  unansweredOnly?: boolean;
+  sort?: "latest" | "unanswered_first";
+}
+
+export interface MarkQuestionReadResponse {
+  questionSendId: number;
+  read: boolean;
+  readAt: string;
+}
+
+type ApiRecord = Record<string, unknown>;
+
+function asRecord(input: unknown): ApiRecord {
+  return input && typeof input === "object" ? (input as ApiRecord) : {};
+}
+
+function getArray(input: unknown, key: string): unknown[] {
+  const source = asRecord(input);
+  const value = source[key];
+  return Array.isArray(value) ? value : [];
+}
+
+function getString(source: ApiRecord, key: string) {
+  const value = source[key];
+  return typeof value === "string" ? value : "";
+}
+
+function getNullableString(source: ApiRecord, key: string) {
+  const value = source[key];
+  return typeof value === "string" ? value : null;
+}
+
+function getNumber(source: ApiRecord, key: string) {
+  const value = source[key];
+  return typeof value === "number" ? value : 0;
+}
+
+function getNullableNumber(source: ApiRecord, key: string) {
+  const value = source[key];
+  return typeof value === "number" ? value : null;
+}
+
+function getBoolean(source: ApiRecord, key: string) {
+  const value = source[key];
+  return typeof value === "boolean" ? value : false;
+}
+
+function normalizeRole(input: string): UserRole {
+  if (input === "child" || input === "mother" || input === "father") return input;
+  return "child";
+}
+
+function normalizeDepth(input: string): QuestionDepth {
+  if (input === "tiny" || input === "medium" || input === "deep") return input;
+  return "tiny";
+}
+
+function normalizeQuestionStatus(input: string): QuestionStatus {
+  if (input === "sent" || input === "answered" || input === "cancelled" || input === "expired") return input;
+  return "sent";
+}
+
+function normalizeSender(input: unknown): QuestionSender {
+  const source = asRecord(input);
+
+  return {
+    userId: getNumber(source, "userId"),
+    displayName: getString(source, "displayName"),
+    profileImageUrl: getNullableString(source, "profileImageUrl"),
+    role: normalizeRole(getString(source, "role")),
+  };
+}
+
+function normalizeReceivedQuestion(input: unknown): ReceivedQuestion {
+  const source = asRecord(input);
+
+  return {
+    questionSendId: getNumber(source, "questionSendId"),
+    sender: normalizeSender(source.sender),
+    questionText: getString(source, "questionText"),
+    depth: normalizeDepth(getString(source, "depth")),
+    receivedAt: getString(source, "receivedAt"),
+    read: getBoolean(source, "read"),
+    readAt: getNullableString(source, "readAt"),
+    answered: getBoolean(source, "answered"),
+    answeredAt: getNullableString(source, "answeredAt"),
+    status: normalizeQuestionStatus(getString(source, "status")),
+  };
+}
+
+function normalizeReceivedQuestionDetail(input: unknown): ReceivedQuestionDetail {
+  const source = asRecord(input);
+  const base = normalizeReceivedQuestion(input);
+  const sourceType = getString(source, "source");
+
+  return {
+    ...base,
+    source: sourceType === "recommendation" ? "recommendation" : "custom",
+    recommendationId: getNullableNumber(source, "recommendationId"),
+  };
+}
 
 export interface RequestAnswerUploadUrlInput {
   questionSendId: string;
@@ -73,4 +204,26 @@ export interface AnswerClip {
  */
 export function getAnswerClip(answerId: string) {
   return apiFetch<AnswerClip>(`/v1/answers/${answerId}/clip`);
+}
+
+export async function getReceivedQuestions(options: GetReceivedQuestionsOptions = {}) {
+  const params = new URLSearchParams({
+    unansweredOnly: String(options.unansweredOnly ?? false),
+    sort: options.sort ?? "unanswered_first",
+  });
+  const response = await apiFetch<unknown>(`/v1/answers/questions?${params.toString()}`);
+
+  return getArray(response, "questions").map(normalizeReceivedQuestion);
+}
+
+export async function getReceivedQuestionDetail(questionSendId: string) {
+  const response = await apiFetch<unknown>(`/v1/answers/questions/${encodeURIComponent(questionSendId)}`);
+
+  return normalizeReceivedQuestionDetail(response);
+}
+
+export function markReceivedQuestionRead(questionSendId: string) {
+  return apiFetch<MarkQuestionReadResponse>(`/v1/answers/questions/${encodeURIComponent(questionSendId)}/read`, {
+    method: "PATCH",
+  });
 }

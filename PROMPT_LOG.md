@@ -4,6 +4,138 @@
 
 ---
 
+## 2026-07-10
+
+- **프롬프트 요약**: 홈 화면 전체 규격은 유지하고 블록 스타일과 상태 색상만 시안 톤으로 수정
+- **작업 구현 요약**: 홈(`/`)의 가족 연결 chip을 active 연결 상태 기반 초록/대기 베이지 톤으로 분리하고, 메인 카드의 답변 촬영 버튼을 코랄 CTA로 변경. 하단 정보 카드는 아이보리/베이지 배경과 코랄 dot, 갈색 텍스트 톤으로 정리하고, 다이어리 버튼 및 하단 네비게이션 active 텍스트 색상만 조정
+- **변경점**: `src/app/page.tsx`, `src/lib/api/home.ts`, `src/lib/api/family-mock.ts`, `src/components/ui/navigation/BottomNav.tsx`, `PROMPT_LOG.md` 수정
+- **검증 결과**: `npm run lint`, `npm run build` 통과
+
+- **프롬프트 요약**: 홈 화면의 서로에게 남길 말 카드와 AI 정리 중 카드 색상/아이콘/배치 조정
+- **작업 구현 요약**: 홈(`/`)의 “서로에게 남길 말” 카드에서 카메라 아이콘을 제거하고 연두색 배경으로 변경. “답변 촬영” 버튼은 아이콘 없이 작은 왼쪽 정렬 버튼으로 바꾸고, 시간 텍스트는 카드 오른쪽 하단에 배치. “AI 정리 중” 카드는 베이지색 배경과 amber 아이콘 톤으로 조정
+- **변경점**: `src/app/page.tsx`, `PROMPT_LOG.md` 수정
+- **검증 결과**: `npm run lint`, `npm run build` 통과
+
+- **프롬프트 요약**: 홈 화면 CTA 버튼을 AI 정리 중 카드 바로 아래가 아닌 하단 네비게이션 위로 배치
+- **작업 구현 요약**: 홈(`/`)의 `질문 만들기`/`다이어리 보기` 버튼 묶음을 본문 카드 영역에서 분리해 하단 footer 스택에 넣고, `BottomNav` 바로 위에 고정되도록 flex `mt-auto` 배치를 적용
+- **변경점**: `src/app/page.tsx`, `PROMPT_LOG.md` 수정
+- **검증 결과**: `npm run lint` 통과
+
+- **프롬프트 요약**: 홈 화면과 질문 만들기 화면을 첨부 시안 톤으로 수정하고 가족/질문 데이터를 DB 조회 기반으로 연결
+- **작업 구현 요약**: 홈(`/`)을 “오늘 가족과 남길 기록” 화면으로 재구성해 연결 가족 chip, 받은 질문 최신 카드, 보낸 질문 요약, AI 정리 중 상태 카드, 질문 만들기/다이어리 CTA를 표시. 질문 만들기(`/questions/new`)는 연결 가족만 받는 사람으로 보여주고, 추천 질문 category 기반 테마와 선택 가족 role 우선 추천 정렬, 직접 질문 입력, 질문 전송 후 홈 이동을 연결. 하단 네비게이션은 pill 형태와 active 상태를 시안 톤에 맞춰 조정
+- **변경점**: `src/app/page.tsx`, `src/app/questions/new/page.tsx`, `src/components/ui/navigation/BottomNav.tsx`, `src/lib/api/home.ts`, `src/lib/api/questions.ts`, `src/lib/api/family-mock.ts`, `PROMPT_LOG.md` 수정
+- **검증 결과**: `npm run lint`, `npm run build` 통과. 개발 서버 `http://localhost:3000` 실행
+
+---
+
+## 2026-07-09
+
+- **프롬프트 요약**: 가족 미연결 사용자는 홈 화면에 진입하지 못하게 하고, 가족 연결 완료를 목데이터로 확인할 수 있게 수정
+- **작업 구현 요약**: 홈(`/`)에서 `GET /api/v1/home/summary`의 `familyConnected=false` 결과를 받으면 `/onboarding/family-connect`로 즉시 이동하도록 게이트를 추가하고, 미연결 홈 문구를 제거. 가족 초대/검증/합류 API는 실제 API를 먼저 호출하되 401을 제외한 실패 상황에서는 목 초대 코드와 localStorage 기반 목 가족 연결 상태로 fallback하도록 연결. 직접 코드 연결 성공 시 목 연결 상태를 저장해 홈 화면 확인이 가능하도록 구현
+- **변경점**: `src/app/page.tsx`, `src/lib/api/families.ts`, `src/lib/api/home.ts`, `src/lib/api/family-mock.ts`, `docs/route-map.md`, `PROMPT_LOG.md` 수정/추가
+- **검증 결과**: `npm run lint`, `npm run build` 통과
+
+- **프롬프트 요약**: 역할 선택 후 홈으로 이동하지 않고 가족 초대/연결 화면으로 이동하도록 수정
+- **작업 구현 요약**: `/onboarding/role`에서 역할 저장 후 조회한 온보딩 상태의 `onboardingCompleted` 값으로 홈 이동을 판단하던 분기를 제거. 이미 가족이 연결된 사용자만 홈으로 보내고, 가족 미연결 상태는 항상 `/onboarding/family-connect`로 이동하도록 조정
+- **변경점**: `src/app/onboarding/role/page.tsx`, `PROMPT_LOG.md` 수정
+- **검증 결과**: `npm run lint`, `npm run build` 통과
+
+- **프롬프트 요약**: 질문&답변 탭의 받은 질문 목록 → 상세 → 답변하기 플로우 구현
+- **작업 구현 요약**: 하단 탭의 `질문&답변` 이동 기준을 `/questions` 목록으로 맞추고, 받은 질문 목록/상세 화면을 API 기반으로 구현. 목록은 현재 사용자에게 온 질문을 상태와 함께 표시하고, 상세는 sender 관계/이름과 질문 내용을 보여준 뒤 기존 영상 답변 라우트로 연결. 상세 진입 시 읽음 처리 API를 호출하고 loading/empty/error 상태를 추가
+- **변경점**: `src/lib/api/answers.ts`, `src/app/questions/page.tsx`, `src/app/questions/[questionSendId]/page.tsx`, `src/app/questions/new/page.tsx`, `src/app/diary/page.tsx`, `src/app/questions/[questionSendId]/record/page.tsx`, `src/app/questions/[questionSendId]/record/permission/page.tsx`, `src/app/answers/[answerId]/processing/page.tsx`, `docs/route-map.md`, `docs/skills/family-question-flow.md`, `PROMPT_LOG.md` 수정/추가
+- **검증 결과**: `npm run lint`, `npm run build` 통과
+
+- **프롬프트 요약**: 공유된 Question/Home API 스펙 기준으로 질문 만들기 API 연결 수정
+- **작업 구현 요약**: 질문 API 클라이언트를 실제 스펙에 맞춰 `/questions/recipients`, `recommendations?depth&limit`, `POST /questions` 요청 구조로 변경. UI 테마 `일상/추억/고민`은 백엔드 `depth` enum에 매핑하고, 홈 화면은 `/home/summary`를 조회해 받은 질문/오늘 완료/최근 보낸 질문 상태를 표시하도록 연결
+- **변경점**: `src/lib/api/questions.ts`, `src/lib/api/home.ts`, `src/app/questions/new/page.tsx`, `src/app/page.tsx`, `docs/route-map.md`, `docs/skills/family-question-flow.md`, `PROMPT_LOG.md` 수정/추가
+- **검증 결과**: `npm run lint`, `npm run build` 통과
+
+- **프롬프트 요약**: 홈 → 가족 질문 만들기 플로우 UI와 API 연결 구현
+- **작업 구현 요약**: 홈 화면을 담소 모바일 앱형 화면으로 교체하고 “질문 만들기” CTA를 `/questions/new`로 연결. 질문 만들기 화면에서 연결 가족 조회, 질문 테마 조회 및 fallback, 선택된 받는 사람/테마 기반 추천 질문 조회, 추천/직접 질문 상호 배타 상태, 질문 전송 API 호출과 성공/실패 UI를 구현
+- **변경점**: `src/app/page.tsx`, `src/app/questions/new/page.tsx`, `src/lib/api/questions.ts`, `docs/route-map.md`, `PROMPT_LOG.md` 수정/추가
+- **검증 결과**: `npm run lint`, `npm run build` 통과
+
+- **프롬프트 요약**: 가족 질문 만들기 플로우 구현 전 기준 스킬파일 작성
+- **작업 구현 요약**: 가족 연결 이후 홈에서 질문 만들기 화면으로 진입해 연결된 가족에게 질문을 보내는 기능의 사용자 흐름, 화면 구성 기준, DB/API 연결 기준, 상태 관리, 예외 처리, 구현 주의사항을 문서화
+- **변경점**: `docs/skills/family-question-flow.md` 추가, `PROMPT_LOG.md` 수정
+- **검증 결과**: 문서 변경만 수행해 별도 빌드/테스트는 실행하지 않음
+
+- **프롬프트 요약**: 가족 연결 2개 화면의 하단 블록을 웹앱 viewport 맨밑 기준으로 정렬
+- **작업 구현 요약**: 기존 약관/역할 선택 화면의 `OnboardingShell` 레이아웃과 비교해, 가족 초대/직접 연결 화면의 공통 `PhoneCard`와 wrapper/form에 flex 높이 전파를 추가하고 footer에 `marginTop: auto`를 적용. 화면 콘텐츠가 짧을 때 마지막 CTA/안내 블록이 모바일 웹앱 viewport 하단에 붙도록 정리
+- **변경점**: `src/components/onboarding/FamilyInviteScreen.tsx`, `src/components/onboarding/FamilyCodeScreen.tsx`, `PROMPT_LOG.md` 수정
+- **검증 결과**: `npm run lint`, `npm run build` 통과
+
+- **프롬프트 요약**: `family-code`와 `family-invite-code` 화면의 UI 스케일 차이만 최소 수정
+- **작업 구현 요약**: 두 화면의 최상위 wrapper가 같은 `FamilyOnboardingFrame`/`PhoneCard`를 공유하는 것을 기준으로, 피그마 목업용 단계 라벨과 외곽 카드 스타일을 제거해 실제 웹앱 단일 컬럼 기준으로 크기와 여백을 맞춤. 가족 연결 badge는 고정 폭/nowrap/flex 정렬을 유지하고, 기능 로직과 라우팅, `/onboarding/role`은 변경하지 않음
+- **변경점**: `src/components/onboarding/FamilyInviteScreen.tsx`, `src/components/onboarding/FamilyCodeScreen.tsx`, `src/components/ui/actions/Button.tsx`, `PROMPT_LOG.md` 수정
+- **검증 결과**: `npm run lint`, `npm run build` 통과
+
+---
+
+## 2026-07-09
+
+- **프롬프트 요약**: 가족 초대 코드 화면과 직접 연결 화면의 화면 규격을 `/onboarding/role` 기준으로 정렬
+- **작업 구현 요약**: 가족 초대/가족 직접 연결 화면의 외곽 컨테이너를 역할 선택 화면과 같은 430px 모바일 컬럼, canvas 배경, 상하 safe-area 패딩으로 통일. 두 화면이 같은 프레임 컴포넌트를 재사용하도록 정리하고 기존 초대 코드 조회/공유, 직접 코드 검증/합류 기능은 유지
+- **변경점**: `src/components/onboarding/FamilyInviteScreen.tsx`, `src/components/onboarding/FamilyCodeScreen.tsx`, `PROMPT_LOG.md` 수정
+- **검증 결과**: `npm run lint`, `npm run build` 통과
+
+---
+
+## 2026-07-09
+
+- **프롬프트 요약**: 가족 연결 코드 랜덤 생성 여부 확인 및 직접 연결 마지막 CTA 색상 정정
+- **작업 구현 요약**: 가족 초대 화면의 고정 fallback 연결 코드(`A7K-28Q`)를 화면 진입 시 생성되는 6자리 랜덤 코드로 변경. 백엔드 초대 코드 응답이 오면 기존처럼 API 값을 우선 표시하고, 직접 연결 화면의 `연결하기` 버튼은 역할 선택 화면의 `선택 완료`와 같은 공용 `Button` 기본 primary 스타일로 맞춤
+- **변경점**: `src/components/onboarding/FamilyInviteScreen.tsx`, `src/components/onboarding/FamilyCodeScreen.tsx`, `PROMPT_LOG.md` 수정
+- **검증 결과**: `npm run lint`, `npm run build` 통과
+
+---
+
+## 2026-07-09
+
+- **프롬프트 요약**: 직접 연결 화면의 코드 입력 블록, 연결하기 버튼, 가족 연결 말풍선 크기 최소 수정
+- **작업 구현 요약**: `/onboarding/family-code`의 연결 코드 입력 블록을 하단 안내 블록과 같은 베이지 배경으로 맞추고, 마지막 `연결하기` CTA를 공용 `Button`의 danger variant로 변경. 자녀/부모 사이 연결 말풍선은 이전 카카오톡 연결 화면과 같은 고정 폭으로 유지되도록 flex basis를 명시
+- **변경점**: `src/components/onboarding/FamilyCodeScreen.tsx`, `src/components/onboarding/FamilyInviteScreen.tsx`, `PROMPT_LOG.md` 수정
+- **검증 결과**: `npm run lint`, `npm run build` 통과
+
+---
+
+## 2026-07-09
+
+- **프롬프트 요약**: 가족 연결 온보딩의 직접 연결 말풍선 폭과 한글 문구 최소 수정
+- **작업 구현 요약**: 공통 가족 연결 패널의 가운데 연결 라벨에 고정 폭을 적용해 `카카오톡 연결`/`직접 연결` 전환 시 폭이 흔들리지 않게 하고, 직접 연결 화면 문구를 지정 문안으로 정리. React inline style 경고를 막기 위해 공용 `Button` secondary 상태 스타일의 `borderColor`를 `border`로 통일
+- **변경점**: `src/components/onboarding/FamilyInviteScreen.tsx`, `src/components/onboarding/FamilyCodeScreen.tsx`, `src/components/ui/actions/Button.tsx`, `PROMPT_LOG.md` 수정
+- **검증 결과**: `npm run lint`, `npm run build` 통과
+
+- **프롬프트 요약**: 직접 연결 코드 입력 블록과 가족 연결 화면의 “코드로 연결하기” 버튼 색상 정정
+- **작업 구현 요약**: `/onboarding/family-code`의 연결 코드 입력 패널을 기존 주요 강조색인 coral 계열 블록으로 변경하고, `/onboarding/family-connect`/`/onboarding/family-invite`에서 쓰는 “코드로 연결하기” 버튼은 공용 `Button`을 유지한 채 cream 계열 베이지 배경과 테두리로 조정
+- **변경점**: `src/components/onboarding/FamilyCodeScreen.tsx`, `src/components/onboarding/FamilyInviteScreen.tsx`, `PROMPT_LOG.md` 수정
+- **검증 결과**: `npm run lint`, `npm run build` 통과
+
+- **프롬프트 요약**: 가족 초대 화면의 코드/안내 블록 배경과 카카오 초대 버튼 색상 정정
+- **작업 구현 요약**: `/onboarding/family-connect`/`/onboarding/family-invite`에서 쓰는 가족 초대 화면의 연결 코드 블록과 “카카오톡 초대 보내기” 안내 블록을 직접 연결 화면과 같은 베이지 배경(`--color-cream-100`)으로 맞춤. 카카오 초대 CTA는 기존 공용 `Button`을 유지하면서 카카오톡 브랜드 색상 토큰을 추가해 노란색 배경으로 조정
+- **변경점**: `src/components/onboarding/FamilyInviteScreen.tsx`, `src/styles/tokens/colors.css`, `docs/design-system.md`, `PROMPT_LOG.md` 수정
+- **검증 결과**: `npm run lint`, `npm run build` 통과
+
+- **프롬프트 요약**: 직접 연결 코드 입력 화면의 코드 입력/안내 블록 배경색 정정
+- **작업 구현 요약**: `/onboarding/family-code`의 연결 코드 입력 블록과 하단 안내 블록 배경을 `/onboarding/role` 역할 카드의 베이지 톤과 같은 `--color-cream-100` 토큰으로 맞춤. 공유 `InfoBox`는 기본 배경을 유지하되 화면별로 배경 토큰을 넘길 수 있게 확장
+- **변경점**: `src/components/onboarding/FamilyCodeScreen.tsx`, `src/components/onboarding/FamilyInviteScreen.tsx`, `PROMPT_LOG.md` 수정
+- **검증 결과**: `npm run lint`, `npm run build` 통과
+
+- **프롬프트 요약**: `/onboarding/role` 이후 홈으로 이동하지 않고 가족 연결/초대 온보딩으로 이어지도록 점검 및 수정
+- **작업 구현 요약**: App Router 구조와 기존 가족 초대/직접 연결 화면 구현을 확인하고, 역할 저장 성공 후 이동 경로를 `/onboarding/family-connect`로 통일. 기존 초대 화면을 재사용하는 `/onboarding/family-connect` 라우트를 추가하고, 초대 화면 문구를 요청한 “가족 대표와 연결하세요” 흐름에 맞췄으며 “코드로 연결하기” 버튼은 온보딩 직접 연결 라우트(`/onboarding/family-code`)로 이동하도록 정리
+- **변경점**: `src/app/onboarding/role/page.tsx`, `src/app/onboarding/family-connect/page.tsx`, `src/components/onboarding/FamilyInviteScreen.tsx`, `docs/route-map.md`, `PROMPT_LOG.md` 수정/추가
+- **검증 결과**: `npm run lint`, `npm run build` 통과
+
+- **프롬프트 요약**: `/onboarding/role` 역할 선택 후 가족 초대 온보딩 화면으로 연결
+- **작업 구현 요약**: 역할 저장 후 `GET /api/v1/users/me/onboarding` 결과가 가족 미연결 상태이면 기존 `/family/create` 대신 `/onboarding/family-invite`로 이동하도록 수정. 라우트맵도 `/onboarding/family-invite`를 기준 경로, `/family/create`를 별칭으로 정리
+- **변경점**: `src/app/onboarding/role/page.tsx`, `docs/route-map.md`, `PROMPT_LOG.md` 수정
+- **검증 결과**: `npm run lint`, `npm run build` 통과
+
+- **프롬프트 요약**: 가족 초대/가족 연결 2개 화면을 레퍼런스 방향에 맞춰 정리
+- **작업 구현 요약**: 카카오톡 초대 화면을 단계 라벨, 휴대폰 카드 status bar, children/father 관계 박스, 연결 코드, 안내 박스, 2버튼 footer 구조로 재구성. 직접 연결 화면은 children/mother 관계 박스와 6칸 코드 입력 UI를 추가하고, 영문 대문자/숫자 제한·자동 포커스 이동·Backspace 이전 이동·하이픈 포함 코드 조합 후 기존 가족 검증/합류 API에 연결
+- **변경점**: `src/components/onboarding/FamilyInviteScreen.tsx`, `src/components/onboarding/FamilyCodeScreen.tsx`, `src/app/family/join/page.tsx`, `src/app/onboarding/family-code/page.tsx`, `docs/route-map.md`, `PROMPT_LOG.md` 수정/추가
+- **검증 결과**: `npm run lint`, `npm run build` 통과
+
 ## 2026-07-08
 
 - **프롬프트 요약**: `/onboarding/family-invite`의 Figma 03 카카오톡 연결 · 가족 초대 화면과 불일치한 UI 정정

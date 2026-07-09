@@ -32,6 +32,7 @@
 | Sage (secondary)       | `--color-sage-50` ~ `-600`                                                                                       | `#EEF6F1` → `#245C3A`                                 | 보조 강조색                                                                |
 | Amber (tertiary)       | `--color-amber-50` ~ `-500`                                                                                      | `#F7EEE3` → `#6A4018`                                 | 3차 강조색                                                                 |
 | Semantic               | `--color-success` / `-error` / `-warning` (+ `-bg`)                                                              | success `#4A9A6C`, error `#D05840`, warning `#C47830` | 상태 표시                                                                  |
+| Brand                  | `--color-kakao-yellow` / `--color-kakao-text`                                                                    | `#FEE500` / `#191919`                                 | 카카오톡 초대 버튼                                                         |
 | Alias                  | `--canvas` `--surface` `--surface-soft` `--hairline*` `--primary*` `--text-1~3` `--text-muted` `--text-disabled` | Coral/Cream/Ink 값 재사용                             | 컴포넌트가 실제로 참조하는 시맨틱 변수                                     |
 
 ### Typography (`tokens/typography.css`)
