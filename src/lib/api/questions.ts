@@ -72,9 +72,30 @@ const ROLE_LABEL: Record<FamilyMemberRole, string> = {
 };
 
 const FALLBACK_THEMES: QuestionTheme[] = [
-  { id: "일상", key: "일상", name: "일상", category: "일상", depth: "tiny", sortOrder: 1 },
-  { id: "추억", key: "추억", name: "추억", category: "추억", depth: "medium", sortOrder: 2 },
-  { id: "고민", key: "고민", name: "고민", category: "고민", depth: "deep", sortOrder: 3 },
+  {
+    id: "일상",
+    key: "일상",
+    name: "일상",
+    category: "일상",
+    depth: "tiny",
+    sortOrder: 1,
+  },
+  {
+    id: "추억",
+    key: "추억",
+    name: "추억",
+    category: "추억",
+    depth: "medium",
+    sortOrder: 2,
+  },
+  {
+    id: "고민",
+    key: "고민",
+    name: "고민",
+    category: "고민",
+    depth: "deep",
+    sortOrder: 3,
+  },
 ];
 
 function asRecord(input: unknown): ApiRecord {
@@ -85,8 +106,10 @@ function getArray(input: unknown, keys: string[]): unknown[] {
   if (Array.isArray(input)) return input;
 
   const record = asRecord(input);
+
   for (const key of keys) {
     const value = record[key];
+
     if (Array.isArray(value)) return value;
   }
 
@@ -96,6 +119,7 @@ function getArray(input: unknown, keys: string[]): unknown[] {
 function getString(source: ApiRecord, keys: string[], fallback = "") {
   for (const key of keys) {
     const value = source[key];
+
     if (typeof value === "string" && value.length > 0) return value;
     if (typeof value === "number") return String(value);
   }
@@ -106,8 +130,16 @@ function getString(source: ApiRecord, keys: string[], fallback = "") {
 function getNumber(source: ApiRecord, keys: string[], fallback = 0) {
   for (const key of keys) {
     const value = source[key];
+
     if (typeof value === "number") return value;
-    if (typeof value === "string" && value.trim() && !Number.isNaN(Number(value))) return Number(value);
+
+    if (
+      typeof value === "string" &&
+      value.trim() &&
+      !Number.isNaN(Number(value))
+    ) {
+      return Number(value);
+    }
   }
 
   return fallback;
@@ -116,8 +148,16 @@ function getNumber(source: ApiRecord, keys: string[], fallback = 0) {
 function getNullableNumber(source: ApiRecord, keys: string[]) {
   for (const key of keys) {
     const value = source[key];
+
     if (typeof value === "number") return value;
-    if (typeof value === "string" && value.trim() && !Number.isNaN(Number(value))) return Number(value);
+
+    if (
+      typeof value === "string" &&
+      value.trim() &&
+      !Number.isNaN(Number(value))
+    ) {
+      return Number(value);
+    }
   }
 
   return null;
@@ -126,6 +166,7 @@ function getNullableNumber(source: ApiRecord, keys: string[]) {
 function getBoolean(source: ApiRecord, keys: string[], fallback = false) {
   for (const key of keys) {
     const value = source[key];
+
     if (typeof value === "boolean") return value;
   }
 
@@ -134,50 +175,91 @@ function getBoolean(source: ApiRecord, keys: string[], fallback = false) {
 
 function normalizeRole(role: string): FamilyMemberRole {
   if (role === "mother" || role === "father" || role === "child") return role;
+
   return "child";
 }
 
 function normalizeDepth(depth: string): QuestionDepth {
   if (depth === "tiny" || depth === "medium" || depth === "deep") return depth;
+
   return "tiny";
+}
+
+function normalizeSource(source: string): QuestionSourceType {
+  if (source === "recommendation" || source === "custom") return source;
+
+  return "custom";
 }
 
 function getDepthByCategory(category: string): QuestionDepth {
   if (category === "추억") return "medium";
   if (category === "고민") return "deep";
+
   return "tiny";
 }
 
-function getTitleFromRecommendation(category: string | null, depth: QuestionDepth, questionText: string) {
+function getTitleFromRecommendation(
+  category: string | null,
+  depth: QuestionDepth,
+  questionText: string,
+) {
   if (category === "일상" || depth === "tiny") return "요즘 하루";
-  if (category === "추억" || depth === "medium") return questionText.includes("고민") ? "그때의 고민" : "그때의 기억";
+
+  if (category === "추억" || depth === "medium") {
+    return questionText.includes("고민") ? "그때의 고민" : "그때의 기억";
+  }
+
   if (category === "고민" || depth === "deep") return "그때의 고민";
+
   return "남기고 싶은 말";
 }
 
 function normalizeReceiver(input: unknown): QuestionReceiver {
   const source = asRecord(input);
-  const role = normalizeRole(getString(source, ["memberRole", "member_role", "role"], "child"));
+  const role = normalizeRole(
+    getString(source, ["memberRole", "member_role", "role"], "child"),
+  );
   const userId = getString(source, ["userId", "user_id"], "");
-  const displayName = getString(source, ["displayName", "display_name", "name"], "");
-  const roleLabel = role === "child" ? displayName || ROLE_LABEL.child : ROLE_LABEL[role];
+  const displayName = getString(
+    source,
+    ["displayName", "display_name", "name"],
+    "",
+  );
+  const roleLabel =
+    role === "child" ? displayName || ROLE_LABEL.child : ROLE_LABEL[role];
 
   return {
     id: getString(source, ["familyMemberId", "family_member_id", "id"], userId),
-    familyMemberId: getNullableNumber(source, ["familyMemberId", "family_member_id", "id"]),
+    familyMemberId: getNullableNumber(source, [
+      "familyMemberId",
+      "family_member_id",
+      "id",
+    ]),
     familyId: getNullableNumber(source, ["familyId", "family_id"]),
     userId,
     name: displayName || roleLabel,
     role,
     roleLabel,
-    profileImageUrl: getString(source, ["profileImageUrl", "profile_image_url"]) || null,
+    profileImageUrl:
+      getString(source, ["profileImageUrl", "profile_image_url"]) || null,
   };
 }
 
-function normalizeRecommendedQuestion(input: unknown, index: number): RecommendedQuestion {
+function normalizeRecommendedQuestion(
+  input: unknown,
+  index: number,
+): RecommendedQuestion {
   const source = asRecord(input);
-  const recommendationId = getNumber(source, ["recommendationId", "recommendation_id", "id"], index + 1);
-  const content = getString(source, ["questionText", "question_text", "content"]);
+  const recommendationId = getNumber(
+    source,
+    ["recommendationId", "recommendation_id", "id"],
+    index + 1,
+  );
+  const content = getString(source, [
+    "questionText",
+    "question_text",
+    "content",
+  ]);
   const depth = normalizeDepth(getString(source, ["depth"], "tiny"));
   const category = getString(source, ["category"]) || null;
 
@@ -185,22 +267,33 @@ function normalizeRecommendedQuestion(input: unknown, index: number): Recommende
     id: String(recommendationId),
     recommendationId,
     depth,
-    title: getString(source, ["title"]) || getTitleFromRecommendation(category, depth, content),
+    title:
+      getString(source, ["title"]) ||
+      getTitleFromRecommendation(category, depth, content),
     content,
     category,
     sortOrder: index + 1,
   };
 }
 
-function normalizeCreateQuestionResponse(input: unknown): CreateQuestionResponse {
+function normalizeCreateQuestionResponse(
+  input: unknown,
+): CreateQuestionResponse {
   const source = asRecord(input);
 
   return {
-    questionSendId: getString(source, ["questionSendId", "question_send_id", "id"], ""),
-    recipientUserId: getNumber(source, ["recipientUserId", "recipient_user_id"]),
+    questionSendId: getString(
+      source,
+      ["questionSendId", "question_send_id", "id"],
+      "",
+    ),
+    recipientUserId: getNumber(source, [
+      "recipientUserId",
+      "recipient_user_id",
+    ]),
     questionText: getString(source, ["questionText", "question_text"]),
     depth: normalizeDepth(getString(source, ["depth"], "tiny")),
-    source: getString(source, ["source"], "custom") as QuestionSourceType,
+    source: normalizeSource(getString(source, ["source"], "custom")),
     sentAt: getString(source, ["sentAt", "sent_at"]),
     read: getBoolean(source, ["read"]),
     answered: getBoolean(source, ["answered"]),
@@ -214,25 +307,46 @@ function normalizeTheme(category: string, index: number): QuestionTheme {
     name: category,
     category,
     depth: getDepthByCategory(category),
-    sortOrder: FALLBACK_THEMES.find((theme) => theme.category === category)?.sortOrder ?? index + 1,
+    sortOrder:
+      FALLBACK_THEMES.find((theme) => theme.category === category)?.sortOrder ??
+      index + 1,
   };
 }
 
-function sortQuestionsByReceiverRole(questions: RecommendedQuestion[], receiverRole?: FamilyMemberRole) {
-  const keyword = receiverRole === "mother" ? "엄마" : receiverRole === "father" ? "아빠" : "";
+function sortQuestionsByReceiverRole(
+  questions: RecommendedQuestion[],
+  receiverRole?: FamilyMemberRole,
+) {
+  const keyword =
+    receiverRole === "mother"
+      ? "엄마"
+      : receiverRole === "father"
+        ? "아빠"
+        : "";
+
   if (!keyword) return questions;
 
   return [...questions].sort((a, b) => {
     const aScore = a.content.includes(keyword) ? 0 : 1;
     const bScore = b.content.includes(keyword) ? 0 : 1;
+
     return aScore - bScore || a.sortOrder - b.sortOrder;
   });
 }
 
-export async function getCurrentUserFamilyMembers(_currentUserId?: number | string) {
+export async function getCurrentUserFamilyMembers(
+  _currentUserId?: number | string,
+) {
   void _currentUserId;
+
   const response = await apiFetch<unknown>("/v1/questions/recipients");
-  return getArray(response, ["recipients", "members", "familyMembers", "family_members"])
+
+  return getArray(response, [
+    "recipients",
+    "members",
+    "familyMembers",
+    "family_members",
+  ])
     .map(normalizeReceiver)
     .filter((receiver) => receiver.userId);
 }
@@ -241,31 +355,50 @@ export const getQuestionReceivers = getCurrentUserFamilyMembers;
 
 export async function getQuestionThemes() {
   const depths: QuestionDepth[] = ["tiny", "medium", "deep"];
+
   const settled = await Promise.allSettled(
-    depths.map((depth) => apiFetch<unknown>(`/v1/questions/recommendations?depth=${depth}&limit=30`)),
+    depths.map((depth) =>
+      apiFetch<unknown>(
+        `/v1/questions/recommendations?depth=${depth}&limit=30`,
+      ),
+    ),
   );
+
   const categories = new Set<string>();
 
   settled.forEach((result) => {
     if (result.status !== "fulfilled") return;
+
     getArray(result.value, ["recommendations"]).forEach((item) => {
       const category = getString(asRecord(item), ["category"]);
+
       if (category) categories.add(category);
     });
   });
 
-  const themes = Array.from(categories).map(normalizeTheme).sort((a, b) => a.sortOrder - b.sortOrder);
+  const themes = Array.from(categories)
+    .map(normalizeTheme)
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+
   return themes.length > 0 ? themes : FALLBACK_THEMES;
 }
 
-export async function getQuestionRecommendations(category: string, receiverRole?: FamilyMemberRole, limit = 3) {
+export async function getQuestionRecommendations(
+  category: string,
+  receiverRole?: FamilyMemberRole,
+  limit = 3,
+) {
   const depth = getDepthByCategory(category);
   const params = new URLSearchParams({
     depth,
     category,
     limit: String(Math.max(limit, 10)),
   });
-  const response = await apiFetch<unknown>(`/v1/questions/recommendations?${params.toString()}`);
+
+  const response = await apiFetch<unknown>(
+    `/v1/questions/recommendations?${params.toString()}`,
+  );
+
   const questions = getArray(response, ["recommendations"])
     .map(normalizeRecommendedQuestion)
     .filter((question) => !question.category || question.category === category)
@@ -274,12 +407,18 @@ export async function getQuestionRecommendations(category: string, receiverRole?
   return sortQuestionsByReceiverRole(questions, receiverRole).slice(0, limit);
 }
 
-export function getRecommendedQuestions(theme: QuestionTheme, limit = 3, receiverRole?: FamilyMemberRole) {
+export function getRecommendedQuestions(
+  theme: QuestionTheme,
+  limit = 3,
+  receiverRole?: FamilyMemberRole,
+) {
   return getQuestionRecommendations(theme.category, receiverRole, limit);
 }
 
 export async function sendQuestion(input: SendQuestionPayload) {
-  const isRecommendation = input.source === "recommendation" && input.recommendationId != null;
+  const isRecommendation =
+    input.source === "recommendation" && input.recommendationId != null;
+
   const body = isRecommendation
     ? {
         recipientUserId: input.recipientUserId,
@@ -306,51 +445,5 @@ export function createQuestion(input: CreateQuestionRequest) {
     questionText: input.questionText,
     source: input.sourceType,
     recommendationId: input.recommendationId ?? null,
-
-
-export type UserRole = "child" | "mother" | "father";
-export type QuestionDepth = "tiny" | "medium" | "deep";
-export type QuestionSendStatus = "sent" | "answered" | "cancelled" | "expired";
-export type QuestionSendSource = "recommendation" | "custom";
-
-export interface QuestionSender {
-  userId: number;
-  displayName: string | null;
-  profileImageUrl: string | null;
-  role: UserRole | null;
-}
-
-export interface ReceivedQuestion {
-  questionSendId: number;
-  sender: QuestionSender;
-  questionText: string;
-  depth: QuestionDepth;
-  receivedAt: string;
-  read: boolean;
-  readAt: string | null;
-  answered: boolean;
-  answeredAt: string | null;
-  status: QuestionSendStatus;
-}
-
-export interface ReceivedQuestionDetail extends ReceivedQuestion {
-  source: QuestionSendSource;
-  recommendationId: number | null;
-}
-
-/** GET /api/v1/answers/questions — 받은 질문 목록 */
-export function listReceivedQuestions() {
-  return apiFetch<{ questions: ReceivedQuestion[] }>("/v1/answers/questions").then((res) => res.questions);
-}
-
-/** GET /api/v1/answers/questions/{question_send_id} — 받은 질문 상세 */
-export function getQuestionDetail(questionSendId: string) {
-  return apiFetch<ReceivedQuestionDetail>(`/v1/answers/questions/${questionSendId}`);
-}
-
-/** PATCH /api/v1/answers/questions/{question_send_id}/read — 읽음 처리 */
-export function markQuestionRead(questionSendId: string) {
-  return apiFetch<void>(`/v1/answers/questions/${questionSendId}/read`, {
-    method: "PATCH",
   });
 }
