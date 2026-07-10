@@ -14,12 +14,6 @@ const NAV_ITEMS = [
   { id: "settings", label: "설정", icon: <Settings size={14} /> },
 ];
 
-const NAV_ROUTES: Record<string, string> = {
-  home: "/",
-  qna: "/questions",
-  diary: "/diary",
-  settings: "/settings",
-};
 
 function formatRelativeDay(dateStr: string) {
   const date = new Date(`${dateStr}T00:00:00`);
@@ -188,7 +182,12 @@ export default function DiaryPage() {
       <BottomNav
         items={NAV_ITEMS}
         activeId="diary"
-        onChange={(id) => router.push(NAV_ROUTES[id] ?? "/")}
+        onChange={(id) => {
+          if (id === "home") router.push("/");
+          if (id === "qna") router.push("/questions");
+          if (id === "diary") router.push("/diary");
+          if (id === "settings") router.push("/settings");
+        }}
         style={{ marginTop: "auto" }}
       />
     </div>

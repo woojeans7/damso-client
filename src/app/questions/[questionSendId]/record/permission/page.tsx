@@ -14,12 +14,6 @@ const NAV_ITEMS = [
   { id: "settings", label: "설정", icon: <Settings size={14} /> },
 ];
 
-const NAV_ROUTES: Record<string, string> = {
-  home: "/",
-  qna: "/questions",
-  diary: "/diary",
-  settings: "/settings",
-};
 
 export default function RecordPermissionPage({ params }: { params: Promise<{ questionSendId: string }> }) {
   const { questionSendId } = use(params);
@@ -181,7 +175,12 @@ export default function RecordPermissionPage({ params }: { params: Promise<{ que
       <BottomNav
         items={NAV_ITEMS}
         activeId="qna"
-        onChange={(id) => router.push(NAV_ROUTES[id] ?? "/")}
+        onChange={(id) => {
+          if (id === "home") router.push("/");
+          if (id === "qna") router.push("/questions");
+          if (id === "diary") router.push("/diary");
+          if (id === "settings") router.push("/settings");
+        }}
         style={{ marginTop: "auto" }}
       />
     </div>

@@ -55,9 +55,9 @@ const variants: Record<ButtonVariant, VariantStateSpec> = {
   },
   secondary: {
     base: { background: "transparent", color: "var(--color-ink-700)", border: "1.5px solid var(--color-cream-500)" },
-    hover: { background: "var(--color-cream-100)", borderColor: "var(--color-ink-500)" },
+    hover: { background: "var(--color-cream-100)", border: "1.5px solid var(--color-ink-500)" },
     pressed: { background: "var(--color-cream-200)" },
-    disabled: { background: "transparent", color: "var(--color-ink-200)", borderColor: "var(--color-cream-400)" },
+    disabled: { background: "transparent", color: "var(--color-ink-200)", border: "1.5px solid var(--color-cream-400)" },
   },
   ghost: {
     base: { background: "transparent", color: "var(--color-coral-400)", border: "none" },
@@ -146,8 +146,9 @@ export function Button({
   const spinnerStyle: CSSProperties = {
     width: s.iconSize,
     height: s.iconSize,
-    border: "2px solid currentColor",
-    borderTopColor: "transparent",
+    borderWidth: "2px",
+    borderStyle: "solid",
+    borderColor: "transparent currentColor currentColor currentColor",
     borderRadius: "50%",
     animation: "memoir-spin 0.6s linear infinite",
     flexShrink: 0,

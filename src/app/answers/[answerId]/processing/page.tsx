@@ -16,12 +16,6 @@ const NAV_ITEMS = [
   { id: "settings", label: "설정", icon: <Settings size={14} /> },
 ];
 
-const NAV_ROUTES: Record<string, string> = {
-  home: "/",
-  qna: "/questions",
-  diary: "/diary",
-  settings: "/settings",
-};
 
 export default function AnswerProcessingPage({ params }: { params: Promise<{ answerId: string }> }) {
   const { answerId } = use(params);
@@ -218,7 +212,7 @@ export default function AnswerProcessingPage({ params }: { params: Promise<{ ans
         </Button>
       </div>
 
-      {/* 상대방에게 질문 보내기 — 발송 API 미확인, 목적지 화면도 아직 없음 (docs/route-map.md 참고) */}
+      {/* 상대방에게 질문 보내기 */}
       <button
         type="button"
         onClick={() => router.push("/questions/new")}
@@ -254,7 +248,12 @@ export default function AnswerProcessingPage({ params }: { params: Promise<{ ans
       <BottomNav
         items={NAV_ITEMS}
         activeId="qna"
-        onChange={(id) => router.push(NAV_ROUTES[id] ?? "/")}
+        onChange={(id) => {
+          if (id === "home") router.push("/");
+          if (id === "qna") router.push("/questions");
+          if (id === "diary") router.push("/diary");
+          if (id === "settings") router.push("/settings");
+        }}
         style={{ marginTop: "auto" }}
       />
     </div>

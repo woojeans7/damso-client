@@ -16,8 +16,8 @@ export interface BottomNavProps extends Omit<HTMLAttributes<HTMLElement>, "style
 }
 
 /**
- * BottomNav — fixed-position primary navigation for the mobile web app.
- * Active item gets a pill highlight; label color stays the same for all items.
+ * BottomNav — mobile app primary navigation.
+ * Active item gets a warm pill highlight matching the DAMSO screen tone.
  */
 export function BottomNav({ items, activeId, onChange, style, ...rest }: BottomNavProps) {
   const active = activeId ?? items[0]?.id;
@@ -27,11 +27,14 @@ export function BottomNav({ items, activeId, onChange, style, ...rest }: BottomN
       style={{
         display: "flex",
         alignItems: "center",
-        height: "42px",
-        background: "#fff",
-        border: "var(--border-base)",
-        borderRadius: "var(--radius-md)",
+        gap: "3px",
+        minHeight: "54px",
+        padding: "6px",
+        background: "rgba(255, 255, 255, 0.86)",
+        border: "1px solid var(--hairline-soft)",
+        borderRadius: "var(--radius-full)",
         boxSizing: "border-box",
+        boxShadow: "var(--elevation-subtle)",
         ...style,
       }}
       {...rest}
@@ -60,17 +63,17 @@ export function BottomNav({ items, activeId, onChange, style, ...rest }: BottomN
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "4px",
-                height: "32px",
-                padding: "0 14px",
+                minHeight: "40px",
+                padding: "0 12px",
                 borderRadius: "var(--radius-full)",
-                background: isActive ? "var(--primary-subtle)" : "transparent",
-                border: isActive ? "var(--border-soft)" : "1px solid transparent",
+                background: isActive ? "var(--color-coral-100)" : "transparent",
+                border: isActive ? "1px solid var(--color-coral-200)" : "1px solid transparent",
                 fontFamily: "var(--font-sans)",
                 fontSize: "13px",
-                fontWeight: "var(--weight-medium)",
-                color: "var(--text-3)",
+                fontWeight: isActive ? "var(--weight-semibold)" : "var(--weight-medium)",
+                color: isActive ? "var(--color-ink-700)" : "var(--text-3)",
                 whiteSpace: "nowrap",
-                transition: "background-color 150ms ease, border-color 150ms ease",
+                transition: "background-color 150ms ease, border-color 150ms ease, color 150ms ease",
               }}
             >
               {item.icon}

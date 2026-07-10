@@ -55,6 +55,10 @@
   --color-warning:       #C47830;
   --color-warning-bg:    #FDF4E4;
 
+  /* ── Brand ──────────────────────────────────────────────── */
+  --color-kakao-yellow:  #FEE500;
+  --color-kakao-text:    #191919;
+
   /* ── Semantic aliases ───────────────────────────────────── */
   --canvas:              var(--color-cream-50);
   --surface:             var(--color-cream-100);
