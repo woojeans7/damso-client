@@ -6,6 +6,18 @@
 
 ## 2026-07-10
 
+- **프롬프트 요약**: 가족 생성 완료 후에도 "코드로 참여하기" 버튼이 남아있는 문제, 로딩 중 카카오초대 화면이 먼저 보였다가 미생성 화면으로 바뀌는 깜빡임 수정
+- **작업 구현 요약**: `FamilyInviteScreen`을 `isReady`(가족 있음/없음) 기준 2가지 모습만 갖도록 정리. 가족이 이미 있는 상태(`ready`)에서는 다른 가족에 join할 수 없으므로(백엔드가 409로 막음) "코드로 참여하기" 버튼을 제거하고 "카카오톡으로 초대" 1개만 노출(그리드도 1열로 축소). 로딩 중(`checking`) 상태는 더 이상 별도 화면으로 취급하지 않고 "가족 없음" 화면과 동일하게 렌더링한 뒤 버튼만 비활성화해, 완료 화면이 먼저 그려졌다가 바뀌는 깜빡임을 제거. 초대받은 사람의 로그인 게이트(`FamilyCodeScreen`의 pending invite code 저장 → 로그인 강제 → 콜백 후 자동 복귀·join)는 기존 구현을 그대로 확인, 변경 없음
+- **변경점**: `src/components/onboarding/FamilyInviteScreen.tsx` 수정
+
+## 2026-07-10
+
+- **프롬프트 요약**: 초대받은 사람이 약관 동의 화면에서 실제로 체크하지 않았는데도 이미 동의된 것처럼 보이는 문제 확인 및 수정
+- **작업 구현 요약**: `src/app/agreements/page.tsx`의 체크박스 초기 상태(`initialChecked`)가 4개 필수 항목 중 3개를 기본값 `true`로 미리 체크해두고 있었음 — 서버 조회(`getUserAgreements`)가 성공하면 실제 상태로 덮어써지지만, 로딩 중 잠깐이나 조회 실패 시엔 이 잘못된 pre-checked 상태가 그대로 노출/유지돼 사용자가 실제로 검토·동의하지 않은 항목까지 체크된 것처럼 보임. `initialChecked`를 제거하고 전부 `false`인 `uncheckedAgreements`를 유일한 기본값으로 사용하도록 수정
+- **변경점**: `src/app/agreements/page.tsx` 수정
+
+## 2026-07-10
+
 - **프롬프트 요약**: 가족 생성자가 초대 코드 공유 후 상대방이 실제로 연결됐는지 확인할 방법이 없고, 연결돼도 자동으로 홈 이동이 안 되는 문제 수정
 - **작업 구현 요약**: `FamilyInviteScreen`이 `status === "ready"`(초대 코드 발급 완료, 공유 대기)일 때 3초 간격으로 `getMyOnboardingStatus()`를 폴링해 `familyConnected`/`onboardingCompleted`가 true가 되면 즉시 `/`(홈)으로 리다이렉트하도록 추가. 대기 중임을 알 수 있게 "⏳ 가족 연결 대기 중이에요. 상대방이 코드를 입력하면 자동으로 홈으로 이동해요." 안내 문구도 함께 표시
 - **변경점**: `src/components/onboarding/FamilyInviteScreen.tsx` 수정

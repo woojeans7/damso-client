@@ -252,19 +252,37 @@ export function FamilyInviteScreen() {
     }
   };
 
+  // 로딩 중(checking)엔 아직 가족이 있는지 없는지 모르므로, "카카오톡 초대" 완료 화면을
+  // 먼저 그렸다가 나중에 "가족 만들기" 화면으로 바뀌는 깜빡임이 생기면 안 된다. 그래서
+  // checking 상태는 "가족 없음" 화면과 동일하게 그리고 버튼만 비활성화한다 — 실질적으로
+  // 이 화면은 "가족 없음(대기 포함)" / "가족 있음(초대 전용)" 두 가지 모습만 존재한다.
+  const isReady = status === "ready";
+
   return (
     <FamilyOnboardingFrame>
       <div style={{ display: "flex", minHeight: 0, flex: 1, flexDirection: "column", width: "100%" }}>
         <PhoneCard
           eyebrow="가족 연결"
           title={
-            <>
-              가족 대표와
-              <br />
-              연결하세요
-            </>
+            isReady ? (
+              <>
+                초대 코드를
+                <br />
+                공유하세요
+              </>
+            ) : (
+              <>
+                가족을 만들거나
+                <br />
+                참여하세요
+              </>
+            )
           }
-          description="카카오톡 초대 링크나 연결 코드로 부모님/자녀 휴대폰을 연결합니다."
+          description={
+            isReady
+              ? "카카오톡 초대 링크나 연결 코드로 가족을 연결하세요."
+              : "새 가족을 만들어 대표가 되거나, 받은 연결 코드로 참여하세요."
+          }
           footer={
             <>
               {noticeMessage && (
@@ -277,29 +295,19 @@ export function FamilyInviteScreen() {
                   {errorMessage}
                 </p>
               )}
-              <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: "var(--space-sm)" }}>
-                {status === "no-family" ? (
-                  <Button
-                    size="md"
-                    fullWidth
-                    loading={isCreating}
-                    disabled={isCreating}
-                    onClick={handleCreateFamily}
-                    style={{
-                      minHeight: "50px",
-                      padding: "0 var(--space-xs)",
-                      fontSize: "14px",
-                      fontWeight: "var(--weight-bold)",
-                    }}
-                  >
-                    가족 만들기
-                  </Button>
-                ) : (
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: isReady ? "1fr" : "minmax(0, 1fr) minmax(0, 1fr)",
+                  gap: "var(--space-sm)",
+                }}
+              >
+                {isReady ? (
                   <Button
                     size="md"
                     fullWidth
                     loading={isSharing}
-                    disabled={isLoading || isSharing || !inviteText}
+                    disabled={isSharing || !inviteText}
                     onClick={handleShare}
                     style={{
                       minHeight: "50px",
@@ -312,42 +320,54 @@ export function FamilyInviteScreen() {
                   >
                     카카오톡으로 초대
                   </Button>
+                ) : (
+                  <>
+                    <Button
+                      size="md"
+                      fullWidth
+                      loading={isCreating}
+                      disabled={isLoading || isCreating}
+                      onClick={handleCreateFamily}
+                      style={{
+                        minHeight: "50px",
+                        padding: "0 var(--space-xs)",
+                        fontSize: "14px",
+                        fontWeight: "var(--weight-bold)",
+                      }}
+                    >
+                      가족 만들기
+                    </Button>
+                    <Button
+                      size="md"
+                      variant="secondary"
+                      fullWidth
+                      disabled={isLoading || isCreating}
+                      onClick={() => router.push("/onboarding/family-code")}
+                      style={{
+                        minHeight: "50px",
+                        padding: "0 var(--space-xs)",
+                        background: "var(--color-cream-100)",
+                        border: "1.5px solid var(--color-cream-300)",
+                        color: "var(--color-ink-700)",
+                        fontSize: "14px",
+                        fontWeight: "var(--weight-bold)",
+                      }}
+                    >
+                      코드로 참여하기
+                    </Button>
+                  </>
                 )}
-                <Button
-                  size="md"
-                  variant="secondary"
-                  fullWidth
-                  disabled={isSharing || isCreating}
-                  onClick={() => router.push("/onboarding/family-code")}
-                  style={{
-                    minHeight: "50px",
-                    padding: "0 var(--space-xs)",
-                    background: "var(--color-cream-100)",
-                    border: "1.5px solid var(--color-cream-300)",
-                    color: "var(--color-ink-700)",
-                    fontSize: "14px",
-                    fontWeight: "var(--weight-bold)",
-                  }}
-                >
-                  코드로 참여하기
-                </Button>
               </div>
               <p className="text-caption" style={{ margin: 0, textAlign: "center", color: "var(--text-2)" }}>
-                {status === "no-family"
-                  ? "가족을 처음 만드는 거라면 '가족 만들기', 상대방에게 코드를 받았다면 '코드로 참여하기'를 눌러주세요."
-                  : "카카오톡으로 가족들을 연결할 수 있어요."}
+                {isReady
+                  ? "카카오톡으로 가족들을 연결할 수 있어요."
+                  : "가족을 처음 만드는 거라면 '가족 만들기', 상대방에게 코드를 받았다면 '코드로 참여하기'를 눌러주세요."}
               </p>
             </>
           }
         >
-          <FamilyConnectionPanel connectorLabel="카카오톡 연결" parentSrc="/father.png" />
-          {status === "no-family" ? (
-            <InfoBox
-              title="아직 만든 가족이 없어요"
-              description="가족 대표라면 '가족 만들기'로 연결 코드를 발급받아 공유하고, 상대방에게 코드를 받았다면 '코드로 참여하기'를 눌러주세요. 두 사람이 동시에 '가족 만들기'를 누르면 서로 연결할 수 없으니 한 명만 먼저 만들어주세요."
-              background="var(--color-cream-100)"
-            />
-          ) : (
+          <FamilyConnectionPanel connectorLabel={isReady ? "카카오톡 연결" : "가족 연결"} parentSrc="/father.png" />
+          {isReady ? (
             <>
               <InviteCodeCard inviteCode={displayInviteCode} isLoading={!displayInviteCode} />
               <p
@@ -363,6 +383,12 @@ export function FamilyInviteScreen() {
                 background="var(--color-cream-100)"
               />
             </>
+          ) : (
+            <InfoBox
+              title="아직 만든 가족이 없어요"
+              description="가족 대표라면 '가족 만들기'로 연결 코드를 발급받아 공유하고, 상대방에게 코드를 받았다면 '코드로 참여하기'를 눌러주세요. 두 사람이 동시에 '가족 만들기'를 누르면 서로 연결할 수 없으니 한 명만 먼저 만들어주세요."
+              background="var(--color-cream-100)"
+            />
           )}
         </PhoneCard>
       </div>

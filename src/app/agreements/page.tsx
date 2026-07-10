@@ -38,13 +38,6 @@ const AGREEMENTS = [
   description: string;
 }[];
 
-const initialChecked: Record<AgreementType, boolean> = {
-  service_terms: true,
-  privacy_policy: true,
-  camera_microphone: true,
-  data_usage: false,
-};
-
 const uncheckedAgreements: Record<AgreementType, boolean> = {
   service_terms: false,
   privacy_policy: false,
@@ -64,7 +57,7 @@ function getAgreementErrorMessage(error: unknown) {
 export default function AgreementsPage() {
   const router = useRouter();
   const didFetchRef = useRef(false);
-  const [checked, setChecked] = useState<Record<AgreementType, boolean>>(initialChecked);
+  const [checked, setChecked] = useState<Record<AgreementType, boolean>>(uncheckedAgreements);
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoadingAgreements, setIsLoadingAgreements] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
