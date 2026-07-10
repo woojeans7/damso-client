@@ -73,6 +73,7 @@ function getNullableNumber(source: ApiRecord, key: string) {
   return typeof value === "number" ? value : null;
 }
 
+
 function getNullableArray(source: ApiRecord, key: string): unknown[] | null {
   const value = source[key];
   return Array.isArray(value) ? value : null;
@@ -263,3 +264,4 @@ export function markReceivedQuestionRead(questionSendId: string) {
     method: "PATCH",
   });
 }
+

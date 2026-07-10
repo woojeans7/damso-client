@@ -127,6 +127,7 @@ export default function QuestionsPage() {
           <p className="text-caption" style={{ marginTop: "8px", color: "var(--text-3)" }}>
             가족이 보낸 질문이 도착하면 여기에 표시돼요.
           </p>
+
           <Button
             variant="primary"
             size="md"

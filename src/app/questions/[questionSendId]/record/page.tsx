@@ -3,6 +3,7 @@
 import { use, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Webcam from "react-webcam";
+
 import { BookOpen, Home, MessageCircleQuestion, Settings } from "lucide-react";
 
 import { BottomNav, Button, Card } from "@/components/ui";

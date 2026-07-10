@@ -2,7 +2,6 @@
 
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, BookOpen, Home, MessageCircleQuestion, Settings } from "lucide-react";
 import { BottomNav, Button, Card } from "@/components/ui";
 import {
   getReceivedQuestionDetail,
@@ -259,62 +258,29 @@ export default function ReceivedQuestionDetailPage({
               </div>
             </Card>
 
-            <Card
-              variant="base"
-              elevation="subtle"
-              padding="16px"
-              bg="var(--color-cream-200)"
-            >
-              <div className="flex items-start gap-3">
-                <RedDot />
-
-                <div>
-                  <p
-                    style={{
-                      fontFamily: "var(--font-sans)",
-                      fontSize: "15px",
-                      fontWeight: "var(--weight-semibold)",
-                      color: "var(--text-1)",
-                    }}
-                  >
-                    프라이버시
-                  </p>
-
-                  <p className="text-body-sm" style={{ marginTop: "6px" }}>
-                    촬영 후 저장 여부를 직접 선택할 수 있습니다.
-                  </p>
-                </div>
-              </div>
-            </Card>
+        <Card variant="base" elevation="subtle" padding="var(--space-md)" bg="var(--surface)">
+          <div className="flex items-start gap-2">
+            <AccentDot />
+            <div>
+              <p style={{ fontFamily: "var(--font-sans)", fontSize: "18px", fontWeight: "var(--weight-medium)", color: "var(--text-1)" }}>
+                프라이버시
+              </p>
+              <p className="text-caption" style={{ marginTop: "4px" }}>
+                촬영 후 저장 여부를 직접 선택할 수 있습니다.
+              </p>
+            </div>
           </div>
-        </>
-      )}
+        </Card>
+      </div>
 
-      <div className="flex flex-col gap-3" style={{ marginTop: "auto" }}>
-        {question && question.answered && (
-          <p className="text-body-sm text-center" style={{ color: "var(--text-3)" }}>
-            이미 답변을 제출한 질문이에요.
-          </p>
-        )}
-        {question && !question.answered && question.status === "cancelled" && (
-          <p className="text-body-sm text-center" style={{ color: "var(--text-3)" }}>
-            보낸 사람이 취소한 질문이에요.
-          </p>
-        )}
-        {question && !question.answered && question.status === "expired" && (
-          <p className="text-body-sm text-center" style={{ color: "var(--text-3)" }}>
-            답변 기한이 지난 질문이에요.
-          </p>
-        )}
-        <Button
-          variant="primary"
-          size="lg"
-          fullWidth
-          disabled={!question || question.answered || question.status !== "sent"}
-          onClick={() => router.push(`/questions/${questionSendId}/record`)}
-        >
-          질문에 답변하기
-        </Button>
+      <Button
+        variant="primary"
+        size="lg"
+        fullWidth
+        onClick={() => router.push(`/questions/${questionSendId}/record`)}
+      >
+        질문에 답변하기
+      </Button>
 
         <BottomNav
           items={NAV_ITEMS}

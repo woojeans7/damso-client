@@ -50,6 +50,14 @@
 
 ## 2026-07-10
 
+- **프롬프트 요약**: 배포 프론트/백엔드 URL 기준 CORS preflight 오류 확인 및 설정 보강
+- **작업 구현 요약**: Cloud Run 백엔드가 `https://damso-eight.vercel.app` origin의 OPTIONS 요청에 `400 Disallowed CORS origin`을 반환하는 것을 확인하고, 브라우저가 백엔드 절대 URL을 직접 호출하던 카카오 auth API를 Next rewrite(`/api`) 경유 호출로 통일
+- **변경점**: `src/lib/api/auth.ts`, `PROMPT_LOG.md` 수정
+
+---
+
+=======
+
 - **프롬프트 요약**: 코드리뷰 지적 3건 수정 — (3) failed 상태를 프론트에서 구분 못 함, (4) 0초 녹화가 검증 없이 제출됨, (5) 포괄적 catch가 409/415/422를 다 뭉갬
 - **작업 구현 요약**: (3) `/v1/clips`가 이미 내려주는 `status`(failed 포함)를 다이어리 목록/그룹 화면에서 반영해 "실패" 배지·라벨 추가, processing 페이지는 완료 전 항상 404인 `getAnswerClip` 대신 `/v1/clips`에서 해당 answerId의 실제 status를 폴링해 완료/실패를 구분(네트워크 오류는 콘솔 로그만 남기고 상태는 단정하지 않음). (4) 녹화 시작~정지 타임스탬프로 실제 길이를 계산해 1초 미만이면 제출 화면으로 넘어가지 않고 재촬영 안내. (5) `ApiError.status`로 409(이미 제출·재시도 UI 자체 제거하고 질문 목록으로 유도)/415(형식 오류)/422(정보 오류)를 구분한 메시지로 분기
 - **변경점**: `src/app/diary/page.tsx`, `src/app/diary/[date]/page.tsx`, `src/app/answers/[answerId]/processing/page.tsx`, `src/app/questions/[questionSendId]/record/page.tsx` 수정
