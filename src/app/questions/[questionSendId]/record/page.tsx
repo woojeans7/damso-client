@@ -4,6 +4,8 @@ import { use, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Webcam from "react-webcam";
 
+import { BookOpen, Home, MessageCircleQuestion, Settings } from "lucide-react";
+
 import { BottomNav, Button, Card } from "@/components/ui";
 import {
   getReceivedQuestionDetail,
@@ -25,11 +27,12 @@ type SubmitState =
   | "error";
 
 const NAV_ITEMS = [
-  { id: "home", label: "홈" },
-  { id: "qna", label: "질문&답변" },
-  { id: "diary", label: "다이어리" },
-  { id: "settings", label: "설정" },
+  { id: "home", label: "홈", icon: <Home size={14} /> },
+  { id: "qna", label: "질문&답변", icon: <MessageCircleQuestion size={14} /> },
+  { id: "diary", label: "다이어리", icon: <BookOpen size={14} /> },
+  { id: "settings", label: "설정", icon: <Settings size={14} /> },
 ];
+
 
 const ROLE_LABEL: Record<UserRole, string> = {
   child: "자녀",

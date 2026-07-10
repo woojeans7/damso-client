@@ -73,6 +73,17 @@ function getNullableNumber(source: ApiRecord, key: string) {
   return typeof value === "number" ? value : null;
 }
 
+
+function getNullableArray(source: ApiRecord, key: string): unknown[] | null {
+  const value = source[key];
+  return Array.isArray(value) ? value : null;
+}
+
+function getNullableStringArray(source: ApiRecord, key: string): string[] | null {
+  const value = source[key];
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : null;
+}
+
 function getBoolean(source: ApiRecord, key: string) {
   const value = source[key];
   return typeof value === "boolean" ? value : false;
@@ -194,6 +205,7 @@ export interface AnswerClip {
   answerId: number;
   questionText: string;
   videoUrl: string | null;
+  videoDurationSeconds: number | null;
   thumbnailUrl: string | null;
   transcript: string | null;
   transcriptSegments: unknown[] | null;
@@ -204,11 +216,31 @@ export interface AnswerClip {
   fourcutTitle: string | null;
 }
 
+function normalizeAnswerClip(input: unknown): AnswerClip {
+  const source = asRecord(input);
+
+  return {
+    answerId: getNumber(source, "answerId"),
+    questionText: getString(source, "questionText"),
+    videoUrl: getNullableString(source, "videoUrl"),
+    videoDurationSeconds: getNullableNumber(source, "videoDurationSeconds"),
+    thumbnailUrl: getNullableString(source, "thumbnailUrl"),
+    transcript: getNullableString(source, "transcript"),
+    transcriptSegments: getNullableArray(source, "transcriptSegments"),
+    title: getNullableString(source, "title"),
+    quote: getNullableString(source, "quote"),
+    oneLineSummary: getNullableString(source, "oneLineSummary"),
+    emotionTags: getNullableStringArray(source, "emotionTags"),
+    fourcutTitle: getNullableString(source, "fourcutTitle"),
+  };
+}
+
 /**
  * GET /api/v1/answers/{answer_id}/clip — AI 처리가 끝나지 않았으면 404("Clip was not found")를 반환한다.
  */
-export function getAnswerClip(answerId: string) {
-  return apiFetch<AnswerClip>(`/v1/answers/${answerId}/clip`);
+export async function getAnswerClip(answerId: string) {
+  const response = await apiFetch<unknown>(`/v1/answers/${answerId}/clip`);
+  return normalizeAnswerClip(response);
 }
 
 export async function getReceivedQuestions(options: GetReceivedQuestionsOptions = {}) {
@@ -232,3 +264,4 @@ export function markReceivedQuestionRead(questionSendId: string) {
     method: "PATCH",
   });
 }
+

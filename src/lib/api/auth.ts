@@ -1,6 +1,7 @@
-import { buildApiRequestUrl, parseApiJsonResponse, throwApiErrorFromResponse } from "./client";
+
 
 const API_BASE = "/api";
+import { buildApiRequestUrl, getApiBaseUrl, parseApiJsonResponse, throwApiErrorFromResponse } from "./client";
 
 export interface KakaoLoginUrlResult {
   loginUrl: string;
@@ -68,6 +69,7 @@ function extractAccessToken(response: unknown) {
 export async function getKakaoLoginUrl() {
   const result = await authFetch<KakaoLoginUrlResult>("/v1/auth/kakao/login-url");
 
+
   if (!result.loginUrl) {
     throw new Error("카카오 로그인 URL 응답에 loginUrl이 없습니다.");
   }
@@ -76,7 +78,9 @@ export async function getKakaoLoginUrl() {
 }
 
 export async function exchangeLoginCode(loginCode: string): Promise<LoginCodeExchangeResult> {
+
   const result = await authFetch<unknown>("/v1/auth/login-code/exchange", {
+
     method: "POST",
     body: JSON.stringify({ loginCode }),
   });

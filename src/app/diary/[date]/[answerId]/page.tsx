@@ -7,13 +7,21 @@ import { getAnswerClip } from "@/lib/api/answers";
 import type { AnswerClip } from "@/lib/api/answers";
 import { getClipGrid } from "@/lib/api/clips";
 import type { ClipGridItem } from "@/lib/api/clips";
+import { BookOpen, Home, MessageCircleQuestion, Settings } from "lucide-react";
 
 const NAV_ITEMS = [
-  { id: "home", label: "홈" },
-  { id: "qna", label: "질문&답변" },
-  { id: "diary", label: "다이어리" },
-  { id: "settings", label: "설정" },
+  { id: "home", label: "홈", icon: <Home size={14} /> },
+  { id: "qna", label: "질문&답변", icon: <MessageCircleQuestion size={14} /> },
+  { id: "diary", label: "다이어리", icon: <BookOpen size={14} /> },
+  { id: "settings", label: "설정", icon: <Settings size={14} /> },
 ];
+
+const NAV_ROUTES: Record<string, string> = {
+  home: "/",
+  qna: "/questions",
+  diary: "/diary",
+  settings: "/settings",
+};
 
 function AccentDot({ color }: { color: string }) {
   return (
@@ -63,6 +71,7 @@ export default function CutDetailPage({
     };
   }, [date, answerId]);
 
+  // getClipGrid()가 answerId 오름차순으로 정렬해서 내려주므로 여기서 다시 정렬할 필요는 없다.
   const index = siblingClips?.findIndex((c) => String(c.answerId) === answerId) ?? -1;
   const prevClip = index > 0 ? siblingClips?.[index - 1] : undefined;
   const nextClip = siblingClips && index >= 0 && index < siblingClips.length - 1 ? siblingClips[index + 1] : undefined;
@@ -230,7 +239,12 @@ export default function CutDetailPage({
         </>
       )}
 
-      <BottomNav items={NAV_ITEMS} activeId="diary" style={{ marginTop: "auto" }} />
+      <BottomNav
+        items={NAV_ITEMS}
+        activeId="diary"
+        onChange={(id) => router.push(NAV_ROUTES[id] ?? "/")}
+        style={{ marginTop: "auto" }}
+      />
     </div>
   );
 }

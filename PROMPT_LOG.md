@@ -6,6 +6,50 @@
 
 ## 2026-07-10
 
+- **프롬프트 요약**: F-13(설정, Figma node-id 68:177)/F-17(데이터 관리, node-id 84:106) 기준 `/settings` 구현
+- **작업 구현 요약**: `/settings`(F-13) — 프로필 카드(역할 기반 아바타/초기화 텍스트), "연결된 가족"은 `getHomeQuestionSummary()`의 `connectedMembers`로 실제 연결 상태 표시, "저장 기본값"/"알림"은 대응 API가 없어 Figma 고정 문구, "저장 기본값" 카드를 탭하면 `/settings/data`로 이동, "가족 초대하기" 버튼은 기존 `FamilyInviteScreen`(`/onboarding/family-connect`) 재사용, "권한 관리"는 목적지 미정 TODO. `/settings/data`(F-17) — 데이터 내보내기/GIF 관리/삭제 안내 카드, "내보내기"/"삭제 요청" 버튼은 백엔드 API 없어 안내 문구만 표시. 이걸로 전 화면 BottomNav의 "설정" 탭이 더 이상 404 안 남
+- **변경점**: `src/app/settings/page.tsx`, `src/app/settings/data/page.tsx` 추가, `docs/route-map.md` 갱신
+
+## 2026-07-10
+
+- **프롬프트 요약**: 질문→목록→영상답변→제출→AI처리→다이어리→상세 전체 플로우 라우팅 연결 검토
+- **작업 구현 요약**: 전체 화면(F-05~F-11)의 라우팅/API 시그니처를 코드로 추적해 연결 자체는 정상임을 확인. 그 과정에서 `next.config.ts`/`src/lib/api/client.ts`가 `NEXT_PUBLIC_API_BASE_URL`을 요구하는데 `.env`엔 옛 이름 `NEXT_PUBLIC_API_URL`만 있어 `next build`가 config 로드 단계에서 즉시 실패하는 치명적 문제 발견(실제 빌드로 재현 확인) — `.env` 이름 수정, Vercel 프로젝트 환경변수도 동일하게 바꿔야 함을 안내. 그 외 자잘한 문제 3건 수정: (1) `/questions/new` BottomNav가 `activeId="home"`으로 잘못 강조되던 것 `"qna"`로 수정 (2) `/questions/{id}` 상세에서 이미 답변/취소/만료된 질문일 때 버튼만 비활성화되고 이유가 안 보이던 것에 안내 문구 추가 (3) `getAnswerClip`이 응답을 무검증 캐스팅만 하던 것을 다른 정규화 함수들과 같은 패턴(`normalizeAnswerClip`)으로 방어적 파싱하도록 변경
+- **변경점**: `.env`(gitignore, 로컬만), `src/app/questions/new/page.tsx`, `src/app/questions/[questionSendId]/page.tsx`, `src/lib/api/answers.ts` 수정
+
+## 2026-07-10
+
+- **프롬프트 요약**: 라이브 백엔드에 `videoDurationSeconds` 응답 필드가 실제로 추가됐는지 재확인 후 F-10에 반영
+- **작업 구현 요약**: 배포된 백엔드 `/openapi.json`을 재조회해 `ClipDetailResponse`에 `videoDurationSeconds`가 추가된 것 확인(직전 확인 시점엔 없었음 — 배포 반영 타이밍 차이였음). `AnswerClip` 타입에 `videoDurationSeconds: number | null` 추가하고, F-10 미니컷 카드에 제목 아래 "MM:SS" 형식으로 영상 길이 표시
+- **변경점**: `src/lib/api/answers.ts`, `src/app/diary/[date]/page.tsx`, `docs/route-map.md` 수정
+
+## 2026-07-10
+
+- **프롬프트 요약**: `video_duration_seconds` 응답 노출 여부 확인 + `/questions` 목록 빈 상태에 "가족에게 질문 만들기" CTA 추가
+- **작업 구현 요약**: `video_duration_seconds`는 `POST /api/v1/answers` 제출 시 입력으로만 쓰이고 `GET /api/v1/clips`/`GET /api/v1/answers/{id}/clip` 어디에도 응답 필드로 없음을 확인 — 필요한 스펙(`GET .../clip`에 `videoDurationSeconds` 추가)을 `docs/route-map.md`에 이미 기록해둔 항목과 함께 정리. `/questions` 받은 질문 목록의 빈 상태 카드("아직 받은 질문이 없어요")에 `/questions/new`로 이동하는 "가족에게 질문 만들기" 버튼 추가
+- **변경점**: `src/app/questions/page.tsx` 수정
+
+---
+
+## 2026-07-10
+
+- **프롬프트 요약**: F-10(Figma node-id 68:42) 화면과 실제 구현 차이 확인 후 수정
+- **작업 구현 요약**: Figma 대비 차이 2건 확인 — (1) 상단 칩이 Figma는 "답변자 role"+"연월", 코드는 "답변 N개"+"전체 날짜"였음. role 칩은 `GET /api/v1/clips`/`GET /api/v1/answers/{id}/clip` 어디에도 답변자 role 필드가 없어 프론트만으로 불가 → 날짜 칩만 연월(`2026.07`) 포맷으로 수정하고 role 칩은 보류. (2) 미니컷 카드에 Figma는 제목 아래 영상 길이("00:42")도 표시하는데 `AnswerClip`에 duration 필드가 없어 표시 불가 — 보류. 두 누락 필드는 `docs/route-map.md`에 백엔드 요청 필요 항목으로 기록
+- **변경점**: `src/app/diary/[date]/page.tsx`(날짜 칩 포맷 변경), `docs/route-map.md` 수정
+
+## 2026-07-10
+
+- **프롬프트 요약**: BottomNav에 작은 아이콘 추가 (이모지 대신 flaticon류 일반 SVG 스타일)
+- **작업 구현 요약**: `BottomNav`가 이미 지원하던 `icon?: ReactNode` prop을 채워넣음. 새 아이콘 컴포넌트를 만들지 않고 이미 의존성에 있던 `lucide-react`(Button.tsx 주석의 "e.g. Lucide icon" 컨벤션과 일치)를 사용: 홈=`Home`, 질문&답변=`MessageCircleQuestion`, 다이어리=`BookOpen`, 설정=`Settings`, 전부 `size={14}`. 7개 화면의 중복된 `NAV_ITEMS` 배열 각각에 동일하게 적용
+- **변경점**: `src/app/diary/page.tsx`, `src/app/diary/[date]/page.tsx`, `src/app/diary/[date]/[answerId]/page.tsx`, `src/app/answers/[answerId]/processing/page.tsx`, `src/app/questions/[questionSendId]/page.tsx`, `src/app/questions/[questionSendId]/record/page.tsx`, `src/app/questions/[questionSendId]/record/permission/page.tsx` 수정
+
+## 2026-07-10
+
+- **프롬프트 요약**: 질문→답변 플로우 라우팅 구조 전수 검토 후 발견한 문제 중 2건 수정 (①`/questions` 부재는 보류, ②처리완료 화면의 "답변 영상 보기" 잘못된 경로, ③전 화면 BottomNav `onChange` 미연결)
+- **작업 구현 요약**: ② processing 페이지가 폴링하는 `getClipGrid()` 결과에서 완료된 answerId가 속한 `date`를 `completedDate` state로 저장해두고, "답변 영상 보기"가 `/diary/${answerId}`(존재하지 않는 라우트) 대신 실제 상세 라우트인 `/diary/${completedDate}/${answerId}`로 이동하도록 수정. ③ F-06/F-07/F-15/F-08/F-09/F-10/F-11 7개 화면 전부 `BottomNav`에 `onChange`가 연결 안 돼 하단 탭이 무반응이던 문제를, 각 파일에 `NAV_ROUTES`(home→`/`, qna→`/questions`, diary→`/diary`, settings→`/settings`) 매핑을 추가해 해결. `/questions`, `/settings`는 아직 라우트가 없어 그 두 탭은 여전히 404이지만(①로 보류), 나머지 탭 이동은 정상 동작
+- **변경점**: `src/app/answers/[answerId]/processing/page.tsx`, `src/app/diary/page.tsx`, `src/app/diary/[date]/page.tsx`, `src/app/diary/[date]/[answerId]/page.tsx`, `src/app/questions/[questionSendId]/page.tsx`, `src/app/questions/[questionSendId]/record/page.tsx`, `src/app/questions/[questionSendId]/record/permission/page.tsx` 수정
+
+## 2026-07-10
+
 - **프롬프트 요약**: 배포 프론트/백엔드 URL 기준 CORS preflight 오류 확인 및 설정 보강
 - **작업 구현 요약**: Cloud Run 백엔드가 `https://damso-eight.vercel.app` origin의 OPTIONS 요청에 `400 Disallowed CORS origin`을 반환하는 것을 확인하고, 브라우저가 백엔드 절대 URL을 직접 호출하던 카카오 auth API를 Next rewrite(`/api`) 경유 호출로 통일
 - **변경점**: `src/lib/api/auth.ts`, `PROMPT_LOG.md` 수정
