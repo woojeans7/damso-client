@@ -26,18 +26,18 @@ function getReceiverLabel(receiver: QuestionReceiver | null) {
 
 function optionBlockStyle(active: boolean) {
   return {
-    minWidth: "92px",
-    minHeight: "48px",
-    padding: "0 18px",
+    minWidth: "auto",
+    height: "34px",
+    padding: "0 14px",
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: "var(--radius-xl)",
+    borderRadius: "var(--radius-full)",
     border: active ? "1.5px solid var(--color-coral-300)" : "1px solid var(--hairline-soft)",
     background: active ? "var(--color-coral-50)" : "var(--color-cream-100)",
     color: active ? "var(--color-coral-600)" : "var(--text-2)",
     fontFamily: "var(--font-sans)",
-    fontSize: "14px",
+    fontSize: "13px",
     fontWeight: "var(--weight-semibold)",
     cursor: "pointer",
     whiteSpace: "nowrap" as const,
@@ -235,7 +235,7 @@ export default function NewQuestionPage() {
         </div>
       </header>
 
-      <section className="flex flex-col gap-3">
+      <section className="flex flex-col gap-2">
         <h2
           style={{
             fontFamily: "var(--font-sans)",
@@ -279,7 +279,7 @@ export default function NewQuestionPage() {
         </div>
       </section>
 
-      <section className="flex flex-col gap-3">
+      <section className="flex flex-col gap-2">
         <div className="flex items-center justify-between gap-3">
           <h2
             style={{
