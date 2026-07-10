@@ -6,6 +6,12 @@
 
 ## 2026-07-10
 
+- **프롬프트 요약**: `/questions/new` 상단 받는 사람/질문 테마 선택 버튼을 더 작은 pill 형태로 조정
+- **작업 구현 요약**: 전체 레이아웃과 추천 질문 영역은 유지하고, 받는 사람/질문 테마에 공통 적용되는 선택 버튼 스타일만 34px 높이·작은 좌우 패딩·13px 텍스트·full pill radius로 축소. 두 섹션의 제목-버튼 그룹 간격도 compact하게 조정
+- **변경점**: `src/app/questions/new/page.tsx`, `PROMPT_LOG.md` 수정
+
+## 2026-07-10
+
 - **프롬프트 요약**: F-13(설정, Figma node-id 68:177)/F-17(데이터 관리, node-id 84:106) 기준 `/settings` 구현
 - **작업 구현 요약**: `/settings`(F-13) — 프로필 카드(역할 기반 아바타/초기화 텍스트), "연결된 가족"은 `getHomeQuestionSummary()`의 `connectedMembers`로 실제 연결 상태 표시, "저장 기본값"/"알림"은 대응 API가 없어 Figma 고정 문구, "저장 기본값" 카드를 탭하면 `/settings/data`로 이동, "가족 초대하기" 버튼은 기존 `FamilyInviteScreen`(`/onboarding/family-connect`) 재사용, "권한 관리"는 목적지 미정 TODO. `/settings/data`(F-17) — 데이터 내보내기/GIF 관리/삭제 안내 카드, "내보내기"/"삭제 요청" 버튼은 백엔드 API 없어 안내 문구만 표시. 이걸로 전 화면 BottomNav의 "설정" 탭이 더 이상 404 안 남
 - **변경점**: `src/app/settings/page.tsx`, `src/app/settings/data/page.tsx` 추가, `docs/route-map.md` 갱신
