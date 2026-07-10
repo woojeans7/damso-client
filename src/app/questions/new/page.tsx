@@ -11,13 +11,7 @@ import {
   sendQuestion,
 } from "@/lib/api/questions";
 import type { QuestionReceiver, QuestionTheme, RecommendedQuestion } from "@/lib/api/questions";
-
-const NAV_ITEMS = [
-  { id: "home", label: "홈" },
-  { id: "qna", label: "질문&답변" },
-  { id: "diary", label: "다이어리" },
-  { id: "settings", label: "설정" },
-];
+import { NAV_ITEMS } from "@/lib/navigation";
 
 function getReceiverLabel(receiver: QuestionReceiver | null) {
   if (!receiver) return "가족";

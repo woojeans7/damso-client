@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, BookOpen, Home, MessageCircleQuestion, Settings } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { BottomNav, Button, Card } from "@/components/ui";
 import {
   getReceivedQuestionDetail,
@@ -10,13 +10,7 @@ import {
 } from "@/lib/api/answers";
 import type { ReceivedQuestionDetail } from "@/lib/api/answers";
 import type { UserRole } from "@/lib/api/users";
-
-const NAV_ITEMS = [
-  { id: "home", label: "홈", icon: <Home size={14} /> },
-  { id: "qna", label: "질문&답변", icon: <MessageCircleQuestion size={14} /> },
-  { id: "diary", label: "다이어리", icon: <BookOpen size={14} /> },
-  { id: "settings", label: "설정", icon: <Settings size={14} /> },
-];
+import { NAV_ITEMS } from "@/lib/navigation";
 
 
 const ROLE_LABEL: Record<UserRole, string> = {
@@ -274,14 +268,20 @@ export default function ReceivedQuestionDetailPage({
         </Card>
       </div>
 
-      <Button
-        variant="primary"
-        size="lg"
-        fullWidth
-        onClick={() => router.push(`/questions/${questionSendId}/record`)}
-      >
-        질문에 답변하기
-      </Button>
+      {question.answered ? (
+        <Button variant="secondary" size="lg" fullWidth disabled>
+          이미 답변을 완료했어요
+        </Button>
+      ) : (
+        <Button
+          variant="primary"
+          size="lg"
+          fullWidth
+          onClick={() => router.push(`/questions/${questionSendId}/record`)}
+        >
+          질문에 답변하기
+        </Button>
+      )}
         </>
       )}
 

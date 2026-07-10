@@ -6,13 +6,7 @@ import { Badge, BottomNav, Button, Card } from "@/components/ui";
 import { getReceivedQuestions } from "@/lib/api/answers";
 import type { QuestionStatus, ReceivedQuestion } from "@/lib/api/answers";
 import type { UserRole } from "@/lib/api/users";
-
-const NAV_ITEMS = [
-  { id: "home", label: "홈" },
-  { id: "qna", label: "질문&답변" },
-  { id: "diary", label: "다이어리" },
-  { id: "settings", label: "설정" },
-];
+import { NAV_ITEMS } from "@/lib/navigation";
 
 const ROLE_LABEL: Record<UserRole, string> = {
   child: "자녀",
@@ -149,7 +143,7 @@ export default function QuestionsPage() {
               variant="base"
               elevation="card"
               padding="16px"
-              onClick={() => router.push(`/questions/${question.questionSendId}`)}
+              onClick={status === "answered" ? undefined : () => router.push(`/questions/${question.questionSendId}`)}
               style={{
                 border: question.read ? "1px solid var(--hairline-soft)" : "1.5px solid var(--color-coral-300)",
               }}

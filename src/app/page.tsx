@@ -3,19 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronRight, Loader2 } from "lucide-react";
+import { ChevronRight, Loader2, RefreshCw } from "lucide-react";
 import { BottomNav, Button, Card } from "@/components/ui";
 import { ApiError } from "@/lib/api/client";
 import { getHomeQuestionSummary } from "@/lib/api/home";
 import type { HomeSummary, LatestSentQuestionSummary } from "@/lib/api/home";
 import { clearAccessToken } from "@/lib/auth/token";
-
-const NAV_ITEMS = [
-  { id: "home", label: "홈" },
-  { id: "qna", label: "질문&답변" },
-  { id: "diary", label: "다이어리" },
-  { id: "settings", label: "설정" },
-];
+import { NAV_ITEMS, NAV_ROUTES } from "@/lib/navigation";
 
 const ROLE_LABEL = {
   child: "자녀",
@@ -25,7 +19,7 @@ const ROLE_LABEL = {
 
 function formatTime(iso: string) {
   const date = new Date(iso);
-  if (!iso || Number.isNaN(date.getTime())) return "오늘 23:41분";
+  if (!iso || Number.isNaN(date.getTime())) return "";
   return `오늘 ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}분`;
 }
 
@@ -157,6 +151,7 @@ export default function Home() {
   const router = useRouter();
   const [summary, setSummary] = useState<HomeSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -166,7 +161,7 @@ export default function Home() {
       .then((data) => {
         if (cancelled) return;
         setSummary(data);
-        if (!data.familyConnected) setError("연결된 가족이 없어요.");
+        setError(data.familyConnected ? "" : "연결된 가족이 없어요.");
       })
       .catch((err) => {
         if (err instanceof ApiError && err.status === 401) {
@@ -186,6 +181,26 @@ export default function Home() {
       cancelled = true;
     };
   }, [router]);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    getHomeQuestionSummary()
+      .then((data) => {
+        setSummary(data);
+        setError(data.familyConnected ? "" : "연결된 가족이 없어요.");
+      })
+      .catch((err) => {
+        if (err instanceof ApiError && err.status === 401) {
+          clearAccessToken();
+          router.replace("/login");
+          return;
+        }
+
+        console.error("[Home] Failed to refresh home question summary", err);
+        setError("홈 정보를 불러오지 못했어요.");
+      })
+      .finally(() => setRefreshing(false));
+  };
 
   const memberChips = useMemo(() => (summary ? getMemberChips(summary) : []), [summary]);
   const pendingQuestion = summary?.pendingReceivedQuestion ?? null;
@@ -256,32 +271,55 @@ export default function Home() {
 
       {!loading && summary && (
         <>
-          <div className="flex gap-2 overflow-x-auto">
-            {memberChips.map((chip, index) => {
-              const colors = getFamilyChipStyle(chip.label);
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex gap-2 overflow-x-auto">
+              {memberChips.map((chip, index) => {
+                const colors = getFamilyChipStyle(chip.label);
 
-              return (
-                <span
-                  key={`${chip.label}-${index}`}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    minHeight: "34px",
-                    padding: "0 14px",
-                    borderRadius: "var(--radius-full)",
-                    border: colors.border,
-                    background: colors.background,
-                    color: colors.color,
-                    fontFamily: "var(--font-sans)",
-                    fontSize: "13px",
-                    fontWeight: "var(--weight-medium)",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {chip.label}
-                </span>
-              );
-            })}
+                return (
+                  <span
+                    key={`${chip.label}-${index}`}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      minHeight: "34px",
+                      padding: "0 14px",
+                      borderRadius: "var(--radius-full)",
+                      border: colors.border,
+                      background: colors.background,
+                      color: colors.color,
+                      fontFamily: "var(--font-sans)",
+                      fontSize: "13px",
+                      fontWeight: "var(--weight-medium)",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {chip.label}
+                  </span>
+                );
+              })}
+            </div>
+            <button
+              type="button"
+              onClick={handleRefresh}
+              disabled={refreshing}
+              aria-label="가족 연결 상태 새로고침"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "34px",
+                height: "34px",
+                flexShrink: 0,
+                borderRadius: "var(--radius-full)",
+                border: "1px solid var(--hairline-soft)",
+                background: "var(--surface)",
+                color: "var(--text-2)",
+                cursor: refreshing ? "default" : "pointer",
+              }}
+            >
+              <RefreshCw size={16} className={refreshing ? "animate-spin" : undefined} />
+            </button>
           </div>
 
           <Card
@@ -320,9 +358,11 @@ export default function Home() {
                 >
                   답변 촬영
                 </Button>
-                <p className="text-caption" style={{ color: "var(--text-3)" }}>
-                  {formatTime(pendingQuestion?.receivedAt ?? "")}
-                </p>
+                {pendingQuestion && (
+                  <p className="text-caption" style={{ color: "var(--text-3)" }}>
+                    {formatTime(pendingQuestion.receivedAt)}
+                  </p>
+                )}
               </div>
             </div>
           </Card>
@@ -398,16 +438,7 @@ export default function Home() {
           </div>
         )}
 
-        <BottomNav
-          items={NAV_ITEMS}
-          activeId="home"
-          onChange={(id) => {
-            if (id === "home") router.push("/");
-            if (id === "qna") router.push("/questions");
-            if (id === "diary") router.push("/diary");
-            if (id === "settings") router.push("/settings");
-          }}
-        />
+        <BottomNav items={NAV_ITEMS} activeId="home" onChange={(id) => router.push(NAV_ROUTES[id] ?? "/")} />
       </footer>
     </div>
   );

@@ -7,21 +7,7 @@ import { ApiError } from "@/lib/api/client";
 import { getHomeQuestionSummary } from "@/lib/api/home";
 import type { HomeSummary } from "@/lib/api/home";
 import { clearAccessToken } from "@/lib/auth/token";
-import { BookOpen, Home, MessageCircleQuestion, Settings as SettingsIcon } from "lucide-react";
-
-const NAV_ITEMS = [
-  { id: "home", label: "홈", icon: <Home size={14} /> },
-  { id: "qna", label: "질문&답변", icon: <MessageCircleQuestion size={14} /> },
-  { id: "diary", label: "다이어리", icon: <BookOpen size={14} /> },
-  { id: "settings", label: "설정", icon: <SettingsIcon size={14} /> },
-];
-
-const NAV_ROUTES: Record<string, string> = {
-  home: "/",
-  qna: "/questions",
-  diary: "/diary",
-  settings: "/settings",
-};
+import { NAV_ITEMS, NAV_ROUTES } from "@/lib/navigation";
 
 const ROLE_LABEL = {
   child: "자녀",

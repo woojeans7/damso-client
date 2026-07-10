@@ -6,6 +6,18 @@
 
 ## 2026-07-10
 
+- **프롬프트 요약**: `/questions`에서 답변 완료된 항목을 눌러도 재답변 화면으로 넘어가던 문제 수정, 다이어리 영상 재생 시 소리가 안 나오는 문제 수정
+- **작업 구현 요약**: `src/app/questions/page.tsx`의 질문 목록 카드에서 `status === "answered"`일 때 `onClick`을 아예 넘기지 않도록 변경(Card는 `onClick` 유무로 클릭 가능 여부를 판단하므로 hover 효과도 함께 사라짐). 상세 페이지(`/questions/[questionSendId]`)에 URL 직접 접근으로 우회하는 경우까지 막기 위해 `question.answered`면 "질문에 답변하기" 버튼 대신 비활성화된 "이미 답변을 완료했어요" 버튼을 노출하도록 방어 코드 추가. 다이어리 상세(`/diary/[date]/[answerId]`)의 `<video>` 태그에 `muted` 속성이 박혀 있고 `controls`가 없어 소리를 켤 방법이 없었던 것이 원인 — `autoPlay`/`loop`/`muted`를 제거하고 `controls`를 추가해 녹화 미리보기 화면과 동일한 방식으로 재생·음량 조절이 가능하도록 수정
+- **변경점**: `src/app/questions/page.tsx`, `src/app/questions/[questionSendId]/page.tsx`, `src/app/diary/[date]/[answerId]/page.tsx` 수정
+
+## 2026-07-10
+
+- **프롬프트 요약**: 홈 화면 가족 연결 상태 옆에 새로고침 버튼 추가, 질문 미수신 시 하드코딩된 시간 노출 제거, 다이어리에서만 보이던 하단 네비게이션 아이콘이 다른 화면에서도 보이도록 수정, 네비게이션 아이콘·라벨을 세로 중앙 정렬로 변경
+- **작업 구현 요약**: 홈 화면(`src/app/page.tsx`) 가족 멤버 칩 영역 옆에 `lucide-react`의 `RefreshCw` 아이콘 버튼을 추가하고 클릭 시 `getHomeQuestionSummary()`를 재호출해 갱신(회전 스피너로 로딩 표시). `pendingReceivedQuestion`이 없을 때도 `formatTime`이 "오늘 23:41분"이라는 목업 문자열을 반환하던 하드코딩을 제거하고, 받은 질문이 있을 때만 시간 텍스트를 렌더링하도록 변경. 하단 네비게이션 아이콘 버그의 원인은 각 페이지가 `NAV_ITEMS` 배열을 중복 정의하면서 홈(`/`)·`/questions`·`/questions/new` 3개 화면만 `icon` 필드를 빠뜨렸던 것 — `src/lib/navigation.tsx`에 `NAV_ITEMS`/`NAV_ROUTES`를 단일화해 모든 페이지가 이를 import하도록 정리해 재발을 막음. `BottomNav` 컴포넌트는 아이콘이 라벨 위, 라벨이 아래에 오도록 세로 중앙 정렬로 레이아웃 변경(가로 정렬 → `flexDirection: column`)
+- **변경점**: `src/app/page.tsx`, `src/components/ui/navigation/BottomNav.tsx`, `src/lib/navigation.tsx`(신규), `src/app/questions/page.tsx`, `src/app/questions/new/page.tsx`, `src/app/settings/page.tsx`, `src/app/settings/data/page.tsx`, `src/app/diary/page.tsx`, `src/app/diary/[date]/page.tsx`, `src/app/diary/[date]/[answerId]/page.tsx`, `src/app/answers/[answerId]/processing/page.tsx`, `src/app/questions/[questionSendId]/page.tsx`, `src/app/questions/[questionSendId]/record/page.tsx`, `src/app/questions/[questionSendId]/record/permission/page.tsx` 수정
+
+## 2026-07-10
+
 - **프롬프트 요약**: 가족 생성 완료 후에도 "코드로 참여하기" 버튼이 남아있는 문제, 로딩 중 카카오초대 화면이 먼저 보였다가 미생성 화면으로 바뀌는 깜빡임 수정
 - **작업 구현 요약**: `FamilyInviteScreen`을 `isReady`(가족 있음/없음) 기준 2가지 모습만 갖도록 정리. 가족이 이미 있는 상태(`ready`)에서는 다른 가족에 join할 수 없으므로(백엔드가 409로 막음) "코드로 참여하기" 버튼을 제거하고 "카카오톡으로 초대" 1개만 노출(그리드도 1열로 축소). 로딩 중(`checking`) 상태는 더 이상 별도 화면으로 취급하지 않고 "가족 없음" 화면과 동일하게 렌더링한 뒤 버튼만 비활성화해, 완료 화면이 먼저 그려졌다가 바뀌는 깜빡임을 제거. 초대받은 사람의 로그인 게이트(`FamilyCodeScreen`의 pending invite code 저장 → 로그인 강제 → 콜백 후 자동 복귀·join)는 기존 구현을 그대로 확인, 변경 없음
 - **변경점**: `src/components/onboarding/FamilyInviteScreen.tsx` 수정

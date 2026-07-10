@@ -7,21 +7,7 @@ import { getAnswerClip } from "@/lib/api/answers";
 import type { AnswerClip } from "@/lib/api/answers";
 import { getClipGrid } from "@/lib/api/clips";
 import type { ClipGridItem } from "@/lib/api/clips";
-import { BookOpen, Home, MessageCircleQuestion, Settings } from "lucide-react";
-
-const NAV_ITEMS = [
-  { id: "home", label: "홈", icon: <Home size={14} /> },
-  { id: "qna", label: "질문&답변", icon: <MessageCircleQuestion size={14} /> },
-  { id: "diary", label: "다이어리", icon: <BookOpen size={14} /> },
-  { id: "settings", label: "설정", icon: <Settings size={14} /> },
-];
-
-const NAV_ROUTES: Record<string, string> = {
-  home: "/",
-  qna: "/questions",
-  diary: "/diary",
-  settings: "/settings",
-};
+import { NAV_ITEMS, NAV_ROUTES } from "@/lib/navigation";
 
 function AccentDot({ color }: { color: string }) {
   return (
@@ -153,9 +139,7 @@ export default function CutDetailPage({
               <video
                 src={clip.videoUrl}
                 poster={clip.thumbnailUrl ?? undefined}
-                autoPlay
-                loop
-                muted
+                controls
                 playsInline
                 className="h-full w-full object-cover"
               />
