@@ -6,6 +6,12 @@
 
 ## 2026-07-12
 
+- **프롬프트 요약**: 온보딩 슬라이드 전환 간격을 1초→5초로 변경, 두 슬라이드에 안내 문구(제목+설명) 톤으로 캡션 추가, 상단 eyebrow 문구를 "살아있는 회고록"에서 "담소"로 변경
+- **작업 구현 요약**: `SLIDE_INTERVAL_MS`를 5000으로 변경. 슬라이드 2 제목 "영상으로 답하는 순간"을 "질문에 영상으로 답해요"로 바꾸고 그 아래 `text-caption` 스타일로 "카메라로 언제 어디서든 편하게 답할 수 있어요." 설명을 추가. 슬라이드 1("오늘의 가족 기록")에도 같은 톤으로 "가족과 나눈 질문과 답을 네컷으로 모아봐요." 설명을 추가해 두 슬라이드가 제목+설명의 동일한 안내 문구 패턴을 갖도록 통일. `OnboardingShell`의 `eyebrow` prop을 "담소"로 변경. Playwright 스크린샷으로 두 슬라이드 모두 최종 확인
+- **변경점**: `src/app/onboarding/page.tsx` 수정
+- **프롬프트 요약**: 온보딩 화면의 네컷 그리드 박스를 1초마다 슬라이드로 자동 순환시켜 두 번째 화면(`public/onboarding.png`)과 번갈아 보이도록 처리
+- **작업 구현 요약**: `activeSlide` state를 `setInterval(1000ms)`로 0/1 토글하고, 두 카드를 폭 200%짜리 flex 트랙에 나란히 배치한 뒤 `transform: translateX(0%/-50%)`에 `transition: transform 500ms ease`를 걸어 가로 슬라이드 전환 구현. 처음엔 두 번째 화면을 기존 `OnboardingInfoCard`(질문마다 한 컷의 영상 안내 카드)로 잘못 넣었다가, 사용자가 실제로 원한 건 별도로 넣어둔 `public/onboarding.png`(영상 답변 녹화 화면 목업)라는 걸 확인 후 슬라이드 2를 이 이미지로 교체(네컷 셀과 동일하게 `aspectRatio: 1/1` + `backgroundSize: cover`). 기존 안내 카드는 캐러셀 밖으로 빼서 두 슬라이드 모두에서 항상 보이는 고정 요소로 유지. Playwright 스크린샷 2장(0.2s/1.3s 대기)으로 두 슬라이드가 정상 전환되는 것 확인
+- **변경점**: `src/app/onboarding/page.tsx` 수정
 - **프롬프트 요약**: 온보딩 네컷 미리보기 그리드에 `public`에 넣어둔 실제 가족 썸네일(son/mom/grandfather/daughter) 적용 — 엄마 좌상단, 아들 우상단, 할아버지 좌하단, 딸 우하단 배치
 - **작업 구현 요약**: `public/mom (1).png` 등 공백·괄호가 섞인 원본 파일명은 `url()` 참조 시 문제될 수 있어 `mom.png`/`son.png`/`grandfather.png`/`daughter.png`로 정리(rename). `cuts` 배열(2x2 그리드, row-major 순서라 첫 번째가 좌상단)에 `image` 필드를 추가해 mom→son→grandfather→daughter 순으로 배치하고, 셀 배경을 기존 단색(`--color-ink-900`)에서 `backgroundImage: url(cut.image)` + `backgroundSize: cover`로 교체해 실제 썸네일이 정사각형 셀을 채우도록 함
 - **변경점**: `src/app/onboarding/page.tsx` 수정, `public/mom.png`·`public/son.png`·`public/grandfather.png`·`public/daughter.png` 추가(원본 공백 포함 파일명에서 rename)
