@@ -8,7 +8,7 @@ import { BottomNav, Button, Card } from "@/components/ui";
 import { ApiError } from "@/lib/api/client";
 import { getHomeQuestionSummary } from "@/lib/api/home";
 import type { HomeSummary, LatestSentQuestionSummary } from "@/lib/api/home";
-import { clearAccessToken } from "@/lib/auth/token";
+import { clearAccessToken, getAccessToken } from "@/lib/auth/token";
 import { NAV_ITEMS, NAV_ROUTES } from "@/lib/navigation";
 
 const ROLE_LABEL = {
@@ -155,6 +155,11 @@ export default function Home() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    if (!getAccessToken()) {
+      router.replace("/onboarding");
+      return;
+    }
+
     let cancelled = false;
 
     getHomeQuestionSummary()
