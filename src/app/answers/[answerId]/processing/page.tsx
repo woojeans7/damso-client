@@ -18,7 +18,6 @@ export default function AnswerProcessingPage({ params }: { params: Promise<{ ans
 
   const [elapsedMs, setElapsedMs] = useState(0);
   const [apiProgress, setApiProgress] = useState<number | null>(null);
-  const [stepLabel, setStepLabel] = useState<string | null>(null);
   const [finishing, setFinishing] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [completedDate, setCompletedDate] = useState<string | null>(null);
@@ -68,7 +67,6 @@ export default function AnswerProcessingPage({ params }: { params: Promise<{ ans
         }
 
         setFinishing(progress.aiJobStatus === "completed");
-        setStepLabel(progress.currentStepLabel);
         if (typeof progress.progress === "number") {
           setApiProgress(Math.max(0, Math.min(100, progress.progress)));
         }
@@ -97,7 +95,7 @@ export default function AnswerProcessingPage({ params }: { params: Promise<{ ans
   const displayProgress = completed ? 100 : apiProgress ?? fallbackProgress;
   const statusLabel = completed ? "완료" : failed ? "실패" : finishing ? "마무리 중" : "처리 중";
   const statusColor = completed || finishing ? "var(--color-sage-400)" : failed ? "var(--color-error)" : "var(--text-3)";
-  const stepMessage = finishing ? "AI가 완성해서 준비하고 있어요." : stepLabel;
+  const stepMessage = finishing ? "AI가 완성해서 준비하고 있어요." : `${Math.round(displayProgress)}%`;
 
   return (
     <div

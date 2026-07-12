@@ -20,7 +20,7 @@ const ROLE_LABEL = {
 function formatTime(iso: string) {
   const date = new Date(iso);
   if (!iso || Number.isNaN(date.getTime())) return "";
-  return `오늘 ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}분`;
+  return `오늘 ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
 }
 
 function getQuestionTopic(questionText: string) {
