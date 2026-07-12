@@ -6,6 +6,12 @@
 
 ## 2026-07-12
 
+- **프롬프트 요약**: 온보딩 네컷 미리보기 그리드에 `public`에 넣어둔 실제 가족 썸네일(son/mom/grandfather/daughter) 적용 — 엄마 좌상단, 아들 우상단, 할아버지 좌하단, 딸 우하단 배치
+- **작업 구현 요약**: `public/mom (1).png` 등 공백·괄호가 섞인 원본 파일명은 `url()` 참조 시 문제될 수 있어 `mom.png`/`son.png`/`grandfather.png`/`daughter.png`로 정리(rename). `cuts` 배열(2x2 그리드, row-major 순서라 첫 번째가 좌상단)에 `image` 필드를 추가해 mom→son→grandfather→daughter 순으로 배치하고, 셀 배경을 기존 단색(`--color-ink-900`)에서 `backgroundImage: url(cut.image)` + `backgroundSize: cover`로 교체해 실제 썸네일이 정사각형 셀을 채우도록 함
+- **변경점**: `src/app/onboarding/page.tsx` 수정, `public/mom.png`·`public/son.png`·`public/grandfather.png`·`public/daughter.png` 추가(원본 공백 포함 파일명에서 rename)
+- **프롬프트 요약**: 온보딩 화면(`/onboarding`)의 네컷 미리보기 그리드를 실제 네컷 묶음 보기(`/diary/[date]`, 10번 페이지)처럼 화면 크기에 맞춰 크게 보이도록 수정
+- **작업 구현 요약**: 기존 셀은 고정 `minHeight: 148px` + 썸네일 박스(1/0.76 비율) + 하단 텍스트를 별도 블록으로 쌓는 구조라, 그리드 폭이 넓어져도 세로 길이가 늘어나지 않고 정사각형도 아니었음. `/diary/[date]`의 실제 클립 셀과 동일하게 셀 전체를 `aspectRatio: 1 / 1`(그리드 폭에 따라 자동으로 커지는 정사각형)로 바꾸고, 재생 버튼은 셀 중앙에 절대 위치로 겹치고, 제목/길이 텍스트는 하단 그라데이션 오버레이 위에 흰 글씨로 얹는 방식으로 재구성해 실제 페이지와 같은 비주얼이 되도록 함
+- **변경점**: `src/app/onboarding/page.tsx` 수정
 - **프롬프트 요약**: 홈 화면 가족 연결 뱃지에서 "답변 대기" 상태 제거, "연결됨"/"연결 대기" 두 가지만 남기기
 - **작업 구현 요약**: `getMemberChips`가 각 가족 구성원에게 보낸 질문 중 아직 답변 안 된 게 있으면 "답변 대기" 라벨(코랄 색상)을 붙이던 로직(`pendingResponseRoleSet` 계산 및 3개 분기 모두)을 제거하고, 연결 여부에 따라 "연결됨"/"연결 대기" 라벨만 반환하도록 단순화. `getFamilyChipStyle`의 "답변 대기" 전용 스타일 분기(코랄 배경)도 더 이상 쓰이지 않아 함께 제거
 - **변경점**: `src/app/page.tsx` 수정

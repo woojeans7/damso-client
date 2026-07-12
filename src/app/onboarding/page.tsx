@@ -8,10 +8,10 @@ import { OnboardingInfoCard } from "@/components/onboarding/OnboardingInfoCard";
 import { OnboardingShell } from "@/components/onboarding/OnboardingShell";
 
 const cuts = [
-  { title: "처음 물어본 날", duration: "00:42" },
-  { title: "요즘의 고민", duration: "00:42" },
-  { title: "젊은 시절 꿈", duration: "00:42" },
-  { title: "남기고 싶은 말", duration: "00:42" },
+  { title: "처음 물어본 날", duration: "00:42", image: "/mom.png" },
+  { title: "요즘의 고민", duration: "00:42", image: "/son.png" },
+  { title: "젊은 시절 꿈", duration: "00:42", image: "/grandfather.png" },
+  { title: "남기고 싶은 말", duration: "00:42", image: "/daughter.png" },
 ];
 
 export default function OnboardingPage() {
@@ -74,34 +74,37 @@ export default function OnboardingPage() {
           {cuts.map((cut) => (
             <div
               key={cut.title}
+              className="relative overflow-hidden"
               style={{
-                minHeight: "148px",
+                aspectRatio: "1 / 1",
                 borderRadius: "var(--radius-xl)",
                 background: "var(--color-ink-900)",
-                padding: "8px",
-                display: "flex",
-                flexDirection: "column",
-                gap: "var(--space-xs)",
-                boxSizing: "border-box",
+                backgroundImage: `url(${cut.image})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
               }}
             >
-              <span
+              <div
+                className="absolute inset-0"
+                style={{ background: "linear-gradient(to top, rgba(20,18,14,0.65), rgba(20,18,14,0) 55%)" }}
+              />
+              <div
                 aria-hidden="true"
+                className="absolute flex items-center justify-center"
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: "100%",
-                  aspectRatio: "1 / 0.76",
-                  borderRadius: "var(--radius-lg)",
-                  background: "var(--color-sage-100)",
-                  color: "var(--color-coral-500)",
-                  flexShrink: 0,
+                  left: "50%",
+                  top: "50%",
+                  transform: "translate(-50%, -50%)",
+                  width: "34px",
+                  height: "34px",
+                  borderRadius: "var(--radius-full)",
+                  background: "var(--primary)",
+                  color: "#fff",
                 }}
               >
-                <Play size={30} fill="currentColor" strokeWidth={0} />
-              </span>
-              <div style={{ display: "flex", minWidth: 0, flexDirection: "column", gap: "2px" }}>
+                <Play size={16} fill="currentColor" strokeWidth={0} />
+              </div>
+              <div className="absolute text-center" style={{ left: "8px", right: "8px", bottom: "10px" }}>
                 <p
                   style={{
                     margin: 0,
@@ -112,7 +115,7 @@ export default function OnboardingPage() {
                     fontSize: "13px",
                     fontWeight: "var(--weight-semibold)",
                     lineHeight: 1.35,
-                    color: "var(--on-primary)",
+                    color: "#fff",
                   }}
                 >
                   {cut.title}
