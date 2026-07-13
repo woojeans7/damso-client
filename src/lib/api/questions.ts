@@ -13,6 +13,8 @@ export interface QuestionReceiver {
   name: string;
   role: FamilyMemberRole;
   roleLabel: string;
+  status: string;
+  active: boolean;
   profileImageUrl: string | null;
 }
 
@@ -173,6 +175,28 @@ function getBoolean(source: ApiRecord, keys: string[], fallback = false) {
   return fallback;
 }
 
+function getMemberStatus(source: ApiRecord) {
+  return getString(
+    source,
+    ["status", "memberStatus", "member_status", "state"],
+    "active",
+  ).toLowerCase();
+}
+
+function getMemberActive(source: ApiRecord) {
+  const status = getMemberStatus(source);
+  if (
+    status === "inactive" ||
+    status === "pending" ||
+    status === "invited" ||
+    status === "deleted"
+  ) {
+    return false;
+  }
+
+  return getBoolean(source, ["active", "isActive", "is_active"], true);
+}
+
 function normalizeRole(role: string): FamilyMemberRole {
   if (role === "mother" || role === "father" || role === "child") return role;
 
@@ -219,6 +243,7 @@ function normalizeReceiver(input: unknown): QuestionReceiver {
   const role = normalizeRole(
     getString(source, ["memberRole", "member_role", "role"], "child"),
   );
+  const status = getMemberStatus(source);
   const userId = getString(source, ["userId", "user_id"], "");
   const displayName = getString(
     source,
@@ -240,6 +265,8 @@ function normalizeReceiver(input: unknown): QuestionReceiver {
     name: displayName || roleLabel,
     role,
     roleLabel,
+    status,
+    active: getMemberActive(source),
     profileImageUrl:
       getString(source, ["profileImageUrl", "profile_image_url"]) || null,
   };
@@ -313,27 +340,6 @@ function normalizeTheme(category: string, index: number): QuestionTheme {
   };
 }
 
-function sortQuestionsByReceiverRole(
-  questions: RecommendedQuestion[],
-  receiverRole?: FamilyMemberRole,
-) {
-  const keyword =
-    receiverRole === "mother"
-      ? "엄마"
-      : receiverRole === "father"
-        ? "아빠"
-        : "";
-
-  if (!keyword) return questions;
-
-  return [...questions].sort((a, b) => {
-    const aScore = a.content.includes(keyword) ? 0 : 1;
-    const bScore = b.content.includes(keyword) ? 0 : 1;
-
-    return aScore - bScore || a.sortOrder - b.sortOrder;
-  });
-}
-
 export async function getCurrentUserFamilyMembers(
   _currentUserId?: number | string,
 ) {
@@ -385,34 +391,37 @@ export async function getQuestionThemes() {
 
 export async function getQuestionRecommendations(
   category: string,
-  receiverRole?: FamilyMemberRole,
+  recipientUserId: number,
   limit = 3,
+  init: Pick<RequestInit, "signal"> = {},
 ) {
   const depth = getDepthByCategory(category);
   const params = new URLSearchParams({
     depth,
     category,
     limit: String(Math.max(limit, 10)),
+    recipient_user_id: String(recipientUserId),
   });
 
   const response = await apiFetch<unknown>(
     `/v1/questions/recommendations?${params.toString()}`,
+    init,
   );
 
-  const questions = getArray(response, ["recommendations"])
+  return getArray(response, ["recommendations"])
     .map(normalizeRecommendedQuestion)
-    .filter((question) => !question.category || question.category === category)
-    .sort((a, b) => a.sortOrder - b.sortOrder);
-
-  return sortQuestionsByReceiverRole(questions, receiverRole).slice(0, limit);
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .slice(0, limit);
 }
 
 export function getRecommendedQuestions(
   theme: QuestionTheme,
   limit = 3,
-  receiverRole?: FamilyMemberRole,
+  recipientUserId?: number,
 ) {
-  return getQuestionRecommendations(theme.category, receiverRole, limit);
+  if (recipientUserId == null) return Promise.resolve([]);
+
+  return getQuestionRecommendations(theme.category, recipientUserId, limit);
 }
 
 export async function sendQuestion(input: SendQuestionPayload) {
@@ -421,13 +430,13 @@ export async function sendQuestion(input: SendQuestionPayload) {
 
   const body = isRecommendation
     ? {
-        recipientUserId: input.recipientUserId,
-        recommendationId: input.recommendationId,
+        recipient_user_id: input.recipientUserId,
+        recommendation_id: input.recommendationId,
       }
     : {
-        recipientUserId: input.recipientUserId,
+        recipient_user_id: input.recipientUserId,
         depth: input.depth,
-        questionText: input.questionText,
+        question_text: input.questionText,
       };
 
   const response = await apiFetch<unknown>("/v1/questions", {

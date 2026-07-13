@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { ArrowLeft, Send } from "lucide-react";
@@ -14,9 +14,36 @@ import {
 import type { QuestionReceiver, QuestionTheme, RecommendedQuestion } from "@/lib/api/questions";
 import { NAV_ITEMS } from "@/lib/navigation";
 
-function getReceiverLabel(receiver: QuestionReceiver | null) {
+type ParentRole = Extract<QuestionReceiver["role"], "mother" | "father">;
+
+interface SelectedRecipient {
+  receiverId: string;
+  userId: number;
+  displayName: string;
+  memberRole: ParentRole;
+  familyId: number | null;
+}
+
+function getReceiverLabel(receiver: SelectedRecipient | null) {
   if (!receiver) return "가족";
-  return receiver.roleLabel || receiver.name;
+  if (receiver.memberRole === "mother") return "엄마";
+  if (receiver.memberRole === "father") return "아빠";
+  return receiver.displayName;
+}
+
+function toSelectedRecipient(receiver: QuestionReceiver): SelectedRecipient | null {
+  if (receiver.role !== "mother" && receiver.role !== "father") return null;
+
+  const userId = Number(receiver.userId);
+  if (Number.isNaN(userId)) return null;
+
+  return {
+    receiverId: receiver.id,
+    userId,
+    displayName: receiver.name,
+    memberRole: receiver.role,
+    familyId: receiver.familyId,
+  };
 }
 
 function optionBlockStyle(active: boolean) {
@@ -45,10 +72,11 @@ export default function NewQuestionPage() {
   const [receivers, setReceivers] = useState<QuestionReceiver[]>([]);
   const [themes, setThemes] = useState<QuestionTheme[]>([]);
   const [recommendations, setRecommendations] = useState<RecommendedQuestion[]>([]);
-  const [selectedReceiverId, setSelectedReceiverId] = useState("");
+  const [selectedRecipient, setSelectedRecipient] = useState<SelectedRecipient | null>(null);
   const [selectedThemeId, setSelectedThemeId] = useState("");
   const [selectedQuestionId, setSelectedQuestionId] = useState("");
   const [customQuestion, setCustomQuestion] = useState("");
+  const [questionFilledFromRecommendation, setQuestionFilledFromRecommendation] = useState(false);
   const [receiversLoading, setReceiversLoading] = useState(true);
   const [themesLoading, setThemesLoading] = useState(true);
   const [recommendationsLoading, setRecommendationsLoading] = useState(false);
@@ -57,6 +85,7 @@ export default function NewQuestionPage() {
   const [submitError, setSubmitError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [successToast, setSuccessToast] = useState(false);
+  const recommendationRequestIdRef = useRef(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -65,7 +94,11 @@ export default function NewQuestionPage() {
       .then((data) => {
         if (cancelled) return;
         setReceivers(data);
-        setSelectedReceiverId(data.find((receiver) => receiver.role === "mother")?.id ?? data[0]?.id ?? "");
+        const activeParents = data.filter(
+          (receiver) => receiver.active && (receiver.role === "mother" || receiver.role === "father"),
+        );
+        const defaultReceiver = activeParents.find((receiver) => receiver.role === "mother") ?? activeParents[0];
+        setSelectedRecipient(defaultReceiver ? toSelectedRecipient(defaultReceiver) : null);
       })
       .catch((error) => {
         console.error("[Questions] Failed to load connected family receivers", error);
@@ -93,9 +126,9 @@ export default function NewQuestionPage() {
     };
   }, []);
 
-  const selectedReceiver = useMemo(
-    () => receivers.find((receiver) => receiver.id === selectedReceiverId) ?? null,
-    [receivers, selectedReceiverId],
+  const parentReceivers = useMemo(
+    () => receivers.filter((receiver) => receiver.active && (receiver.role === "mother" || receiver.role === "father")),
+    [receivers],
   );
   const selectedTheme = useMemo(
     () => themes.find((theme) => theme.id === selectedThemeId) ?? null,
@@ -105,59 +138,72 @@ export default function NewQuestionPage() {
     () => recommendations.find((question) => question.id === selectedQuestionId) ?? null,
     [recommendations, selectedQuestionId],
   );
-  const questionText = customQuestion.trim() || selectedQuestion?.content.trim() || "";
-  const sourceType = customQuestion.trim() ? "custom" : "recommendation";
-  const canSubmit = !!selectedReceiver && !!selectedTheme && !!questionText && !submitting;
+  const questionText = customQuestion.trim();
+  const sourceType = selectedQuestion && questionFilledFromRecommendation ? "recommendation" : "custom";
+  const canSubmit = !!selectedRecipient && !!selectedTheme && !!questionText && !submitting;
+
+  const resetRecommendationSelection = (clearRecommendedText: boolean) => {
+    setRecommendations([]);
+    setSelectedQuestionId("");
+
+    if (clearRecommendedText) {
+      setCustomQuestion("");
+      setQuestionFilledFromRecommendation(false);
+    }
+  };
 
   useEffect(() => {
-    if (!selectedReceiver || !selectedTheme) {
+    if (!selectedRecipient || !selectedTheme) {
       return;
     }
 
-    let cancelled = false;
+    const requestId = recommendationRequestIdRef.current + 1;
+    recommendationRequestIdRef.current = requestId;
+    const controller = new AbortController();
 
     Promise.resolve()
       .then(() => {
-        if (cancelled) return [];
+        if (controller.signal.aborted) return [];
+
+        setRecommendations([]);
         setRecommendationsLoading(true);
         setRecommendationError("");
         setSelectedQuestionId("");
-        return getQuestionRecommendations(selectedTheme.category, selectedReceiver.role, 3);
+
+        return getQuestionRecommendations(selectedTheme.category, selectedRecipient.userId, 3, {
+          signal: controller.signal,
+        });
       })
       .then((data) => {
-        if (!cancelled) setRecommendations(data);
+        if (requestId === recommendationRequestIdRef.current) setRecommendations(data);
       })
       .catch((error) => {
+        if (controller.signal.aborted) return;
         console.error("[Questions] Failed to load recommended questions", error);
-        if (!cancelled) {
+        if (requestId === recommendationRequestIdRef.current) {
           setRecommendations([]);
           setRecommendationError("추천 질문을 불러오지 못했어요. 직접 질문을 작성해 주세요.");
         }
       })
       .finally(() => {
-        if (!cancelled) setRecommendationsLoading(false);
+        if (requestId === recommendationRequestIdRef.current) setRecommendationsLoading(false);
       });
 
     return () => {
-      cancelled = true;
+      controller.abort();
     };
-  }, [selectedReceiver, selectedTheme]);
+  }, [selectedRecipient, selectedTheme]);
 
   const handleSubmit = async () => {
-    if (!selectedReceiver || !selectedTheme || !questionText) return;
+    if (!selectedRecipient || !selectedTheme || !questionText) return;
 
     setSubmitting(true);
     setSubmitError("");
 
     try {
-      const recipientUserId = Number(selectedReceiver.userId);
-      if (Number.isNaN(recipientUserId)) {
-        throw new Error("받는 사람 userId가 올바르지 않습니다.");
-      }
-
       await sendQuestion({
-        recipientUserId,
-        familyId: selectedReceiver.familyId,
+        recipientUserId: selectedRecipient.userId,
+        familyId: selectedRecipient.familyId,
         depth: selectedTheme.depth,
         questionText,
         source: sourceType,
@@ -256,24 +302,25 @@ export default function NewQuestionPage() {
             {receiverError}
           </p>
         )}
-        {!receiversLoading && !receiverError && receivers.length === 0 && (
+        {!receiversLoading && !receiverError && parentReceivers.length === 0 && (
           <Card variant="base" elevation="flat" padding="16px" bg="var(--color-cream-100)">
             <p className="text-body-sm">연결된 가족이 없어요. 먼저 가족을 연결해 주세요.</p>
           </Card>
         )}
         <div className="flex gap-2 overflow-x-auto">
-          {receivers.map((receiver) => {
-            const active = receiver.id === selectedReceiverId;
+          {parentReceivers.map((receiver) => {
+            const recipient = toSelectedRecipient(receiver);
+            const active = recipient?.userId === selectedRecipient?.userId;
             return (
               <button
                 key={receiver.id}
                 type="button"
                 onClick={() => {
-                  setSelectedReceiverId(receiver.id);
-                  setRecommendations([]);
-                  setSelectedQuestionId("");
-                  setCustomQuestion("");
+                  if (!recipient) return;
+                  resetRecommendationSelection(questionFilledFromRecommendation);
+                  setSelectedRecipient(recipient);
                 }}
+                disabled={!recipient}
                 style={optionBlockStyle(active)}
               >
                 {receiver.roleLabel}
@@ -308,9 +355,7 @@ export default function NewQuestionPage() {
                   type="button"
                   onClick={() => {
                     setSelectedThemeId(theme.id);
-                    setRecommendations([]);
-                    setSelectedQuestionId("");
-                    setCustomQuestion("");
+                    resetRecommendationSelection(questionFilledFromRecommendation);
                   }}
                   style={optionBlockStyle(active)}
                 >
@@ -331,7 +376,7 @@ export default function NewQuestionPage() {
             color: "var(--text-1)",
           }}
         >
-          {getReceiverLabel(selectedReceiver)}에게 보내는 추천AI 질문
+          {getReceiverLabel(selectedRecipient)}에게 보내는 추천AI 질문
         </h2>
         {recommendationsLoading && <p className="text-body-sm">추천 질문을 불러오는 중...</p>}
         {!recommendationsLoading && recommendationError && (
@@ -339,14 +384,14 @@ export default function NewQuestionPage() {
             {recommendationError}
           </p>
         )}
-        {!recommendationsLoading && !recommendationError && selectedReceiver && selectedTheme && recommendations.length === 0 && (
+        {!recommendationsLoading && !recommendationError && selectedRecipient && selectedTheme && recommendations.length === 0 && (
           <Card variant="base" elevation="flat" padding="16px" bg="var(--color-cream-100)">
-            <p className="text-body-sm">추천 질문이 아직 없어요. 직접 질문을 작성해 보세요.</p>
+            <p className="text-body-sm">선택한 가족에게 추천할 질문이 아직 없어요.</p>
           </Card>
         )}
         <div className="flex flex-col gap-2">
           {recommendations.slice(0, 3).map((question) => {
-            const active = question.id === selectedQuestionId && !customQuestion.trim();
+            const active = question.id === selectedQuestionId && questionFilledFromRecommendation;
             return (
               <Card
                 key={question.id}
@@ -356,7 +401,8 @@ export default function NewQuestionPage() {
                 bg={active ? "var(--color-sage-50)" : "var(--canvas)"}
                 onClick={() => {
                   setSelectedQuestionId(question.id);
-                  setCustomQuestion("");
+                  setCustomQuestion(question.content);
+                  setQuestionFilledFromRecommendation(true);
                 }}
                 style={{
                   border: active ? "1.5px solid var(--color-sage-300)" : "1px solid var(--hairline-soft)",
@@ -407,6 +453,7 @@ export default function NewQuestionPage() {
           maxLength={1000}
           onChange={(event) => {
             setCustomQuestion(event.target.value);
+            setQuestionFilledFromRecommendation(false);
             if (event.target.value.trim()) setSelectedQuestionId("");
           }}
           hint="직접 질문은 최대 1000자까지 보낼 수 있어요."

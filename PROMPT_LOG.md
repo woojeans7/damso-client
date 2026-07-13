@@ -6,6 +6,10 @@
 
 ## 2026-07-13
 
+- **프롬프트 요약**: 질문 작성 화면에서 엄마/아빠 선택에 따라 실제 가족 구성원 `userId` 기반 추천 질문을 조회하고, 선택한 부모에게 질문을 전송하도록 수정
+- **작업 구현 요약**: 가족 구성원 정규화 타입에 `status`/`active`를 추가하고 질문 작성 화면은 active 상태의 mother/father만 대상 버튼으로 표시. 선택 상태를 문자열 id 대신 `{ userId, displayName, memberRole }`를 포함한 객체로 저장하도록 변경. 추천 조회는 부모가 선택된 경우에만 `recipient_user_id`와 현재 테마 파라미터를 함께 보내고, 프론트의 역할 기반 정렬/필터를 제거해 백엔드 반환값을 그대로 표시. 부모/테마 변경 시 추천 목록·추천 선택을 초기화하고, 추천으로 입력란이 채워진 경우 입력값도 비움. `AbortController`와 요청 id로 빠른 대상 변경 시 오래된 추천 응답을 무시. 추천 클릭 시 textarea에 질문 문구를 채우고, 전송 시 같은 `selectedRecipient.userId`를 `recipient_user_id`로 전달
+- **변경점**: `src/app/questions/new/page.tsx`, `src/lib/api/questions.ts`, `PROMPT_LOG.md` 수정
+
 - **프롬프트 요약**: 심사위원용 데모 진입 기능 구현 — 카카오 로그인/access token 없이 데모 헤더로 홈 진입
 - **작업 구현 요약**: 백엔드 소스는 현재 프론트 저장소에 없어 구현 여부를 확인할 수 없었음. 프론트에서는 `localStorage.demoMode=true` 유틸을 추가하고 로그인 화면 하단 문구를 접근 가능한 버튼으로 연결. 버튼 클릭 시 기존 토큰을 지우고 `/home`으로 이동하며, `/home`은 기존 홈 컴포넌트를 재사용. 공통 `apiFetch`가 데모 모드일 때 모든 백엔드 요청에 `X-Demo-Mode: true`를 자동 추가하도록 변경. 홈의 토큰 선확인 가드는 데모 모드를 허용하고, 401/로그아웃/데모 종료 시 토큰과 데모 플래그를 함께 제거. 카카오 콜백 성공 시에도 데모 플래그를 제거하도록 보강
 - **변경점**: `src/lib/auth/token.ts`, `src/lib/api/client.ts`, `src/app/login/page.tsx`, `src/app/page.tsx`, `src/app/home/page.tsx`, `src/app/auth/kakao/callback/CallbackClient.tsx`, `src/app/settings/page.tsx`, `PROMPT_LOG.md` 수정
