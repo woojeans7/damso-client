@@ -9,7 +9,7 @@ import { BottomNav, Button, Card } from "@/components/ui";
 import { ApiError } from "@/lib/api/client";
 import { getHomeQuestionSummary } from "@/lib/api/home";
 import type { HomeSummary, LatestSentQuestionSummary } from "@/lib/api/home";
-import { clearAccessToken, getAccessToken } from "@/lib/auth/token";
+import { clearAuthSession, getAccessToken, isDemoModeEnabled } from "@/lib/auth/token";
 import { NAV_ITEMS, NAV_ROUTES } from "@/lib/navigation";
 
 const ROLE_LABEL = {
@@ -138,7 +138,7 @@ export default function Home() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!getAccessToken()) {
+    if (!getAccessToken() && !isDemoModeEnabled()) {
       router.replace("/onboarding");
       return;
     }
@@ -153,7 +153,7 @@ export default function Home() {
       })
       .catch((err) => {
         if (err instanceof ApiError && err.status === 401) {
-          clearAccessToken();
+          clearAuthSession();
           router.replace("/login");
           return;
         }
@@ -179,7 +179,7 @@ export default function Home() {
       })
       .catch((err) => {
         if (err instanceof ApiError && err.status === 401) {
-          clearAccessToken();
+          clearAuthSession();
           router.replace("/login");
           return;
         }

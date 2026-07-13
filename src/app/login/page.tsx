@@ -2,10 +2,12 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button, Card } from "@/components/ui";
 import { OnboardingShell } from "@/components/onboarding/OnboardingShell";
 import { getKakaoLoginUrl } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
+import { clearAccessToken, saveDemoMode } from "@/lib/auth/token";
 
 const loginHighlights = [
   {
@@ -31,11 +33,13 @@ function getLoginErrorMessage(error: unknown) {
 }
 
 export default function LoginPage() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [isDemoStarting, setIsDemoStarting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   const handleKakaoLogin = async () => {
-    if (isLoading) return;
+    if (isLoading || isDemoStarting) return;
 
     setIsLoading(true);
     setErrorMessage("");
@@ -48,6 +52,16 @@ export default function LoginPage() {
       setErrorMessage(getLoginErrorMessage(error));
       setIsLoading(false);
     }
+  };
+
+  const handleDemoStart = () => {
+    if (isLoading || isDemoStarting) return;
+
+    setIsDemoStarting(true);
+    setErrorMessage("");
+    clearAccessToken();
+    saveDemoMode();
+    router.replace("/home");
   };
 
   return (
@@ -86,6 +100,17 @@ export default function LoginPage() {
           )}
           <Button size="lg" fullWidth onClick={handleKakaoLogin} loading={isLoading} disabled={isLoading}>
             {isLoading ? "카카오로 이동 중" : "카카오로 시작하기"}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            fullWidth
+            onClick={handleDemoStart}
+            loading={isDemoStarting}
+            disabled={isLoading || isDemoStarting}
+            style={{ marginTop: "var(--space-xs)" }}
+          >
+            (심사위원용) 홈으로 바로 시작해요. 클릭
           </Button>
         </>
       }

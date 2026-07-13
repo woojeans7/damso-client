@@ -6,7 +6,7 @@ import { Button } from "@/components/ui";
 import { OnboardingShell } from "@/components/onboarding/OnboardingShell";
 import { exchangeLoginCode } from "@/lib/api/auth";
 import { getMyOnboardingStatus } from "@/lib/api/users";
-import { saveAccessToken } from "@/lib/auth/token";
+import { clearDemoMode, saveAccessToken } from "@/lib/auth/token";
 import { getNextOnboardingRoute } from "@/lib/onboarding/next-route";
 
 interface CallbackClientProps {
@@ -30,6 +30,7 @@ export function CallbackClient({ loginCode }: CallbackClientProps) {
     async function exchange() {
       try {
         const { accessToken } = await exchangeLoginCode(code);
+        clearDemoMode();
         saveAccessToken(accessToken);
         const onboardingStatus = await getMyOnboardingStatus();
         router.replace(getNextOnboardingRoute(onboardingStatus));

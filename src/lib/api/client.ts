@@ -1,4 +1,4 @@
-import { getAccessToken } from "@/lib/auth/token";
+import { getAccessToken, isDemoModeEnabled } from "@/lib/auth/token";
 
 const API_BASE = "/api";
 const MISSING_API_BASE_URL_MESSAGE = "NEXT_PUBLIC_API_BASE_URL 환경변수가 설정되지 않았습니다.";
@@ -119,18 +119,26 @@ export async function throwApiErrorFromResponse(res: Response, requestUrl: strin
 
 export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
   const token = getAccessToken();
+  const demoMode = isDemoModeEnabled();
   const requestUrl = buildApiRequestUrl(API_BASE, path);
 
   let res: Response;
 
   try {
+    const headers = new Headers(init.headers);
+    if (!headers.has("Content-Type")) {
+      headers.set("Content-Type", "application/json");
+    }
+    if (token && !headers.has("Authorization")) {
+      headers.set("Authorization", `Bearer ${token}`);
+    }
+    if (demoMode && !headers.has("X-Demo-Mode")) {
+      headers.set("X-Demo-Mode", "true");
+    }
+
     res = await fetch(requestUrl, {
       ...init,
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...init.headers,
-      },
+      headers,
     });
   } catch (error) {
     console.error("[API] Fetch failed", {

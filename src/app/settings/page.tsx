@@ -7,7 +7,7 @@ import { Avatar, BottomNav, Button, Card } from "@/components/ui";
 import { ApiError } from "@/lib/api/client";
 import { getHomeQuestionSummary } from "@/lib/api/home";
 import type { HomeSummary } from "@/lib/api/home";
-import { clearAccessToken } from "@/lib/auth/token";
+import { clearAuthSession, isDemoModeEnabled } from "@/lib/auth/token";
 import { NAV_ITEMS, NAV_ROUTES } from "@/lib/navigation";
 
 const ROLE_LABEL = {
@@ -44,7 +44,7 @@ export default function SettingsPage() {
       })
       .catch((err) => {
         if (err instanceof ApiError && err.status === 401) {
-          clearAccessToken();
+          clearAuthSession();
           router.replace("/login");
         }
       })
@@ -58,6 +58,12 @@ export default function SettingsPage() {
   }, [router]);
 
   const roleLabel = summary?.role ? ROLE_LABEL[summary.role] : "가족";
+  const demoMode = isDemoModeEnabled();
+
+  const handleLogout = () => {
+    clearAuthSession();
+    router.replace("/login");
+  };
 
   return (
     <div
@@ -202,6 +208,10 @@ export default function SettingsPage() {
           권한 관리
         </Button>
       </div>
+
+      <Button variant="ghost" fullWidth onClick={handleLogout}>
+        {demoMode ? "데모 종료" : "로그아웃"}
+      </Button>
 
       <BottomNav
         items={NAV_ITEMS}

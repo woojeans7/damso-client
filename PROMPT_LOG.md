@@ -6,6 +6,10 @@
 
 ## 2026-07-13
 
+- **프롬프트 요약**: 심사위원용 데모 진입 기능 구현 — 카카오 로그인/access token 없이 데모 헤더로 홈 진입
+- **작업 구현 요약**: 백엔드 소스는 현재 프론트 저장소에 없어 구현 여부를 확인할 수 없었음. 프론트에서는 `localStorage.demoMode=true` 유틸을 추가하고 로그인 화면 하단 문구를 접근 가능한 버튼으로 연결. 버튼 클릭 시 기존 토큰을 지우고 `/home`으로 이동하며, `/home`은 기존 홈 컴포넌트를 재사용. 공통 `apiFetch`가 데모 모드일 때 모든 백엔드 요청에 `X-Demo-Mode: true`를 자동 추가하도록 변경. 홈의 토큰 선확인 가드는 데모 모드를 허용하고, 401/로그아웃/데모 종료 시 토큰과 데모 플래그를 함께 제거. 카카오 콜백 성공 시에도 데모 플래그를 제거하도록 보강
+- **변경점**: `src/lib/auth/token.ts`, `src/lib/api/client.ts`, `src/app/login/page.tsx`, `src/app/page.tsx`, `src/app/home/page.tsx`, `src/app/auth/kakao/callback/CallbackClient.tsx`, `src/app/settings/page.tsx`, `PROMPT_LOG.md` 수정
+
 - **프롬프트 요약**: 백엔드가 `ClipGridItem`/`ClipDetailResponse`에 `answererRole`/`answererName`을 추가한 뒤, 보류했던 다이어리 답변자 구분(F-10 role 칩 + `/diary` 목록 제목 개인화) 마무리
 - **작업 구현 요약**: 라이브 `openapi.json`으로 두 응답 모두 `answererRole`(`UserRole` enum)/`answererName`(string, 둘 다 required)이 반영된 것 확인. `src/lib/api/clips.ts`의 `ClipGridItem`, `src/lib/api/answers.ts`의 `AnswerClip`(`normalizeAnswerClip`에서 `normalizeRole` 재사용)에 타입 추가. `src/app/diary/page.tsx`: 그룹 내 클립이 전부 같은 답변자면 그 role 라벨, 섞여있으면 "가족"으로 판별하는 `getGroupAnswererLabel` 추가, 카드 제목을 "{상대 날짜} {답변자}의 회고록" 형태로 통일(기존엔 7일 미만일 때만 "가족 회고록", 그 이상만 상대 날짜 포함하던 것을 전체 구간에 일관 적용, 캡션의 중복 상대 날짜 표기 제거). `src/app/diary/[date]/page.tsx`: 미니컷 좌상단에 "{역할} 답변" 칩 추가(Figma node-id 68:42에 있던 요소, 2026-07-10부터 필드 없어 보류했던 것)
 - **변경점**: `src/lib/api/clips.ts`, `src/lib/api/answers.ts`, `src/app/diary/page.tsx`, `src/app/diary/[date]/page.tsx`, `docs/route-map.md` 수정
