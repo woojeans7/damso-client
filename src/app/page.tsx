@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { ChevronRight, Loader2, RefreshCw } from "lucide-react";
+import { Loader2, RefreshCw } from "lucide-react";
 import { BottomNav, Button, Card } from "@/components/ui";
 import { ApiError } from "@/lib/api/client";
 import { getHomeQuestionSummary } from "@/lib/api/home";
@@ -178,7 +178,6 @@ function SentQuestionCard({ question }: { question: LatestSentQuestionSummary | 
                 : "아직 가족에게 보낸 질문이 없어요."}
             </p>
           </div>
-          <ChevronRight size={18} color="var(--color-ink-300)" style={{ flexShrink: 0, marginTop: "2px" }} />
         </div>
       </div>
     </Card>
